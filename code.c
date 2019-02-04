@@ -40,7 +40,7 @@ int main(void){
 
         for(int i=0;i<MAX_SIZE;i++)
             if(buf[i]=='\n')
-                buf[i]=0;
+     	        buf[i]=0;
             char *k = malloc(100);
             char temp[100]="/";
             strcat(temp,firstarg);
@@ -57,10 +57,6 @@ int main(void){
             }
             
 
-            if(p==NULL){
-                printf("Command %s not found\n",buf);
-                exit(0);
-            }
             
 
             int nofargs=0;
@@ -93,6 +89,11 @@ int main(void){
             int ret = fork();
             setpgid(ret,ret); //new process group for every command
             if(ret == 0) {
+            	if(p==NULL){
+               	 	printf("Command %s not found\n",buf);
+                	exit(0);
+            	}
+            
                 execv(k,(char **)v);
             
 
