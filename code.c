@@ -26,17 +26,16 @@ int main(void){
 
     while(read(0, buf, MAX_SIZE)>0) {
 
-        if(buf[0] == '\n') {
-            printf("prompt> ");
-            fflush(stdout);
-            continue;
-        }
-
         for(int i=0;i<MAX_SIZE;i++)
             if(buf[i]=='\n')
                 buf[i]='\0';
         strcpy(buf2, buf);
         char *firstarg = strtok_r(buf, &delim2, &savebuf);
+	if(firstarg==NULL){
+       		printf ("prompt> ");
+                fflush (stdout);
+                continue;
+        }
 
         for(int i=0;i<MAX_SIZE;i++)
             if(buf[i]=='\n')
