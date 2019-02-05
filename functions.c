@@ -77,3 +77,49 @@ bool check (char *filepath)
 	return false;
 
 }
+
+void greatersign(char *p,char **argv,int nofargs){
+	int i=0;
+	while(i<nofargs && strcmp(argv[i],">")!=0){
+		i++;
+	}
+	if(i!=nofargs-2){
+	//	printf("error\n");
+		return;
+	}
+	char buf[10000];
+	int PIPE_BUFFER=10000;
+
+	char **argv1=(char**)malloc(sizeof(char*)*(nofargs-1));
+	char **argv2=(char**)malloc(sizeof(char*)*(2));
+	int j;
+	for(j=0;j<nofargs-2;j++){
+		argv1[j]=(char*)malloc(sizeof(char)*MAX_SIZE);
+        strcpy (argv1[j], argv[j]);
+	}
+	argv1[j]=NULL;
+
+		argv2[0]=(char*)malloc(sizeof(char)*MAX_SIZE);
+        strcpy (argv2[0], argv[nofargs-1]);
+		argv2[1]=NULL;
+
+	int fd[2];
+	pipe(fd);
+	int ret = fork();
+	if(ret==0){//child writes output to pipe
+		close(fd[0]);//close read end
+		close(1);//close stdout
+		dup2(fd[1],1);//output to pipe
+		execv(p,argv1);
+	}
+	else{//parent reads input from pipe
+		close(0);//close stdin
+		close(fd[1]);//close pipe_write
+		dup2(fd[0],0);//input from pipe
+		wait(NULL);
+		read(0,buf,PIPE_BUFFER);
+		FILE *fp = fopen(argv2[0],"w");
+		fprintf(fp,"%s\n",buf);
+		exit(0);
+	}
+}

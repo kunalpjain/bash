@@ -9,3 +9,5 @@ functions.o: functions.c
 shell.o:	shell.c
 	gcc -g -c shell.c
 
+clean:
+	rm *.o
