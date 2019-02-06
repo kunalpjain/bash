@@ -10,6 +10,6 @@
 
 bool check (char *filepath);
 char *getfile(char *path,char *firstarg);
-char **getargv(char *buff,int nofargs,bool *back_pr);
+char **getargv(char *buff,int *nofargs,bool *back_pr);
 char *getcommand(char *buf,int *noofargs);
 void greatersign(char *p,char **argv,int nofargs);

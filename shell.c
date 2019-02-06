@@ -23,8 +23,7 @@ int main (void)
 		       
 			char *p = getfile(path,command);
 			bool back_pr = false;
-					
-		   	char **v = getargv(buf,nofargs,&back_pr);
+		   	char **v = getargv(buf,&nofargs,&back_pr);
 			int ret = fork ();
 			setpgid(ret,ret);//new process group for every command
 
@@ -45,8 +44,6 @@ int main (void)
 					s = tcsetpgrp(0,getpid());//take back the terminal input
 					printf ("pid=%d,status =%d\n\n", ret, status);
 				}
-				else
-					printf ("pid=%d,status =%d\n\n", ret, status);
 			}
 		}	
 	}
