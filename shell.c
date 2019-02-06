@@ -35,8 +35,8 @@ int main (void)
 					printf ("Command %s not found\n", buf);
 					exit (1);
 				}
-				// greatersign(p,v,nofargs);
-				parsecommand(p,v,nofargs);
+				 greatersign(p,v,nofargs);
+				//parsecommand(p,v,nofargs);
 				execv (p, v);
 			}
 			

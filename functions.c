@@ -66,7 +66,6 @@ char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and
         
         }
         
-    v[*nofargs] = (char *) malloc (sizeof (char) * MAX_SIZE);
     v[*nofargs] = NULL;
     return v;
 }		
@@ -88,7 +87,6 @@ void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbol
 	printf("fun %d\n", strinarr(argv,"<",nofargs));
 }
 
-
 int strinarr(char **argv, char *sym, int nofargs) {
 	int i;
 	for(i=0;i<nofargs;i++) {
@@ -99,9 +97,49 @@ int strinarr(char **argv, char *sym, int nofargs) {
 }
 
 
+char *nextstr(char *str,int *point){
+	//char *delim[]={" ",">","<",">>","|"};
+	int len = strlen(str);
+	char *temp = (char*)malloc(sizeof(char)*100);
+	int i=*point;
+	int j=0;
+	while(1){
+		i--;
+		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]=='\0'){
+			temp[j]='\0';
+			break;
+		}
+		temp[j]=str[i];
+		i++;
+		j++;
+	}
+	*point=i+1;
+	return temp;
+}
+
+void parse(char *str){
+//	printf("%s\n",str);
+	int point=0;
+	char *temp = nextstr(str,&point);
+		printf("%s\n",temp);
+	while(point<strlen(str)){
+		temp = nextstr(str,&point);
+		printf("%s\n",temp);
+	}
+	
+}
+
+int main(void){
+	parse("asd>dsa k<j ksdj");
+	return 0;
+}
+
 void lessersign(char *path,char **argv,int nofargs) {
 
 }
+
+
+	
 
 
 void greatersign(char *path,char **argv,int nofargs){
