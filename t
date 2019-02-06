@@ -1,10 +1,9 @@
 a.out
-code.c
+backup.c
 functions.c
 functions.h
 functions.o
 makefile
-private
 README.md
 shell.c
 shell.o
