@@ -1,4 +1,3 @@
+private
 a.out
-code.c
-shell.o
-functions.o
+pub
