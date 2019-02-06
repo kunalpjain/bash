@@ -44,18 +44,19 @@ char *getfile(char *path,char *firstarg){//returns file path of command entered 
 
 }
 
-char **getargv(char *buff,int nofargs,bool *back_pr){//updates backgprocess and returns vector argv
+char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and returns vector argv
 	char buf[MAX_SIZE];
 	strcpy(buf,buff);
     char *delim2 = " ";
     char *savebuf2;
     char *firstarg = strtok_r (buf, delim2, &savebuf2);
     
-    char **v = (char **) malloc (sizeof (char *) * (nofargs + 1));
-        for (int i = 0; i < nofargs; i++){
-            if(strcmp(firstarg,"&")==0 && i==nofargs-1){// background process 
+    char **v = (char **) malloc (sizeof (char *) * (*nofargs + 1));
+        for (int i = 0; i < *nofargs; i++){
+            if(strcmp(firstarg,"&")==0 && i==*nofargs-1){// background process 
                 *back_pr=true;
-                nofargs--;
+                *nofargs-=1;
+				break;
             }
             v[i] = (char *) malloc (sizeof (char) * MAX_SIZE);
             
@@ -65,7 +66,8 @@ char **getargv(char *buff,int nofargs,bool *back_pr){//updates backgprocess and 
         
         }
         
-    v[nofargs] = NULL;
+    v[*nofargs] = (char *) malloc (sizeof (char) * MAX_SIZE);
+    v[*nofargs] = NULL;
     return v;
 }		
 	
