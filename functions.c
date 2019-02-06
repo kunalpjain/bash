@@ -80,11 +80,10 @@ bool check (char *filepath)
 
 void greatersign(char *p,char **argv,int nofargs){
 	int i=0;
-	while(i<nofargs && strcmp(argv[i],">")!=0){
+	while(i<nofargs && (strcmp(argv[i],">")!=0 && strcmp(argv[i],">>") !=0)){
 		i++;
 	}
 	if(i!=nofargs-2){
-	//	printf("error\n");
 		return;
 	}
 	char buf[10000];
@@ -118,7 +117,11 @@ void greatersign(char *p,char **argv,int nofargs){
 		dup2(fd[0],0);//input from pipe
 		wait(NULL);
 		read(0,buf,PIPE_BUFFER);
-		FILE *fp = fopen(argv2[0],"w");
+		FILE *fp;
+		if(strcmp(argv[i],">")==0)
+			fp = fopen(argv2[0],"w");
+		else
+			fp = fopen(argv2[0],"a");
 		fprintf(fp,"%s\n",buf);
 		exit(0);
 	}
