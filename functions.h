@@ -16,3 +16,4 @@ void parsecommand(char *p,char **argv,int nofargs);
 int strinarr(char **argv, char *sym, int nofargs);
 void greatersign(char *p,char **argv,int nofargs);
 void lessersign(char *p,char **argv,int nofargs);
+char *nextToken(char *str,int *point);

@@ -5,109 +5,163 @@ char *getcommand(char *buf,int *noofargs){//gets the first command and updates n
 	char *savebuf;
 	char *buf2 = (char*)malloc(MAX_SIZE);
 	strcpy(buf2,buf);
-	char *command = strtok_r(buf2,delim,&savebuf);
+	//char *command = strtok_r(buf2,delim,&savebuf);
+	int parser=0;
+	char *command = nextToken(buf2,&parser);
 	char *firstarg=command;
 	while (firstarg != NULL){
 		*noofargs+=1;
-		firstarg = strtok_r (NULL,delim, &savebuf);
+		//firstarg = strtok_r (NULL,delim, &savebuf);
+		firstarg = nextToken(buf2,&parser);
 	}
 	return command;
 }
 
 
-char *getfile(char *path,char *firstarg){//returns file path of command entered by user
-        char *delim=":";
-        char *savepath;
-       
-        char *k = (char*)malloc (sizeof(char)*100);//final file path
-        
-        char temp[100] = "/";
-        
-        strcat (temp, firstarg);
-        char *path2 =(char *) malloc (sizeof (char) * MAX_SIZE);
 
-        strcpy (path2, path);
-        char *p = strtok_r (path2, delim, &savepath);//tokenize path2
-        
-        while (p != NULL){
-            strcpy (k, p);
-            strcat (k, temp);
-            if (check (k) == true)
-                break;
-            p = strtok_r (NULL, delim, &savepath);
-            
-        }
-        if(p!=NULL)
-            return k;
-        else
-            return NULL;
+
+
+
+char *getfile(char *path,char *firstarg){//returns file path of command entered by user
+	char *delim=":";
+	char *savepath;
+       
+	char *k = (char*)malloc (sizeof(char)*100);//final file path
+	
+	char temp[100] = "/";
+	
+	strcat (temp, firstarg);
+	char *path2 =(char *) malloc (sizeof (char) * MAX_SIZE);
+
+	strcpy (path2, path);
+	char *p = strtok_r (path2, delim, &savepath);//tokenize path2
+	int parser=0;
+	//char *p = nextToken(path2,&parser);
+	//printf("filep:%s\n",p);
+	while (p != NULL){
+	    strcpy (k, p);
+	    strcat (k, temp);
+	    if (check (k) == true)
+		break;
+	    p = strtok_r (NULL, delim, &savepath);
+	//	p = nextToken(path2,&parser);
+	    
+	}
+	if(p!=NULL)
+	    return k;
+	else
+	    return NULL;
 
 }
+
+
+
 
 char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and returns vector argv
 	char buf[MAX_SIZE];
 	strcpy(buf,buff);
-    char *delim2 = " ";
-    char *savebuf2;
-    char *firstarg = strtok_r (buf, delim2, &savebuf2);
-    
-    char **v = (char **) malloc (sizeof (char *) * (*nofargs + 1));
-        for (int i = 0; i < *nofargs; i++){
-            if(strcmp(firstarg,"&")==0 && i==*nofargs-1){// background process 
-                *back_pr=true;
-                *nofargs-=1;
-				break;
-            }
-            v[i] = (char *) malloc (sizeof (char) * MAX_SIZE);
-            
-            strcpy (v[i], firstarg);
-            
-            firstarg = strtok_r (NULL, delim2, &savebuf2);
-        
-        }
-        
-    v[*nofargs] = NULL;
-    return v;
+	char *delim2 = " ";
+	char *savebuf2;
+	//char *firstarg = strtok_r (buf, delim2, &savebuf2);
+	int parser=0;
+	char *firstarg = nextToken(buf,&parser);
+
+	char **v = (char **) malloc (sizeof (char *) * (*nofargs + 1));
+	for (int i = 0; i < *nofargs; i++){
+		if(strcmp(firstarg,"&")==0 && i==*nofargs-1){// background process 
+			*back_pr=true;
+			*nofargs-=1;
+			break;
+		}
+
+		v[i] = (char *) malloc (sizeof (char) * MAX_SIZE);
+
+		strcpy (v[i], firstarg);
+
+	//	firstarg = strtok_r (NULL, delim2, &savebuf2);
+		firstarg = nextToken(buf,&parser);
+
+	}
+
+	v[*nofargs] = (char *) malloc (sizeof (char) * MAX_SIZE);
+	v[*nofargs] = NULL;
+	return v;
 }		
 	
+
+
+
+
 bool check (char *filepath)
 {
 	if (access (filepath, F_OK) == 0){
-      		return true;
-    	}
+		return true;
+	}
 	return false;
 
 }
 
+
+
+
+
 void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbols
-	/*if(strinarr(argv,"<",nofargs) == 1)
+	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
-	if((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0))
-		greatersign(path,argv,nofargs);*/
-	printf("fun %d\n", strinarr(argv,"<",nofargs));
+	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
+		greatersign(path,argv,nofargs);
 }
 
-int strinarr(char **argv, char *sym, int nofargs) {
+int strinarr(char **argv, char *sym, int nofargs) {	// returns index at which str is present in arr, -1 if not found
 	int i;
 	for(i=0;i<nofargs;i++) {
 		if(strcmp(argv[i],sym) == 0)
-			return 1;
+			return i;
 	}
-	return 0;
+	return -1;
 }
 
 
-char *nextstr(char *str,int *point){
-	//char *delim[]={" ",">","<",">>","|"};
+char *nextToken(char *str,int *point){
 	int len = strlen(str);
 	char *temp = (char*)malloc(sizeof(char)*100);
 	int i=*point;
+	while(i<strlen(str) && str[i]==' ')
+		i++;
+	if(i>=strlen(str))
+		return NULL;	
+	if(str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==' '){
+		temp[0]=str[i];
+		if(str[i]=='>' && str[i+1]=='>'){
+			temp[1]=str[i+1];
+			temp[2]='\0';
+			*point=i+2;
+			return temp;
+		}
+		if(str[i]=='|' && str[i+1]=='|'){
+			temp[1]=str[i+1];
+			if(str[i+2]=='|'){
+				temp[2]='|';
+				temp[3]='\0';
+				*point=i+3;
+				return temp;
+			}
+			temp[2]='\0';
+			*point=i+2;
+			return temp;
+		}
+		else{
+			temp[1]='\0';
+			*point=i+1;
+			return temp;
+		}
+	}
 	int j=0;
 	while(1){
-		i--;
 		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]=='\0'){
 			temp[j]='\0';
-			break;
+			*point=i;
+			return temp;
 		}
 		temp[j]=str[i];
 		i++;
@@ -117,76 +171,50 @@ char *nextstr(char *str,int *point){
 	return temp;
 }
 
-void parse(char *str){
-//	printf("%s\n",str);
-	int point=0;
-	char *temp = nextstr(str,&point);
-		printf("%s\n",temp);
-	while(point<strlen(str)){
-		temp = nextstr(str,&point);
-		printf("%s\n",temp);
-	}
-	
-}
-
-int main(void){
-	parse("asd>dsa k<j ksdj");
-	return 0;
-}
-
 void lessersign(char *path,char **argv,int nofargs) {
 
-}
+	int index = strinarr(argv, "<",nofargs);
+	if(access(argv[index + 1], F_OK) == -1) {
+		printf("No such file or directory\n");
+		exit(0);
+	}
 
 
+	FILE *fp = fopen(argv[index + 1], "r");
+	dup2(fileno(fp), 0);
+	int grtsign = strinarr(argv, ">", nofargs), appsign=strinarr(argv, ">>", nofargs);
 	
+
+	if(grtsign == -1 && appsign == -1) {
+		for(int i=index;i<nofargs;i++)
+			argv[i] = NULL;
+		execv(path,argv);
+	}
+	
+
+	FILE *fp2;
+	if(grtsign >= 0)
+		fp2 = fopen(argv[grtsign+1], "w");
+	else
+		fp2 = fopen(argv[appsign+1], "a");
+	dup2(fileno(fp2), 1);
+	for(int i=index;i<nofargs;i++)
+		argv[i] = NULL;
+	execv(path,argv);
+}
 
 
 void greatersign(char *path,char **argv,int nofargs){
-	int i=0;
-	while(i<nofargs && (strcmp(argv[i],">")!=0 && strcmp(argv[i],">>") !=0)){
-		i++;
-	}
-	if(i!=nofargs-2){
-		return;
-	}
-	char buf[10000];
-	int PIPE_BUFFER=10000;
+	
+	FILE *fp;
+	if(strcmp(argv[nofargs-2],">")==0)
+		fp = fopen(argv[nofargs-1],"w");
+	else
+		fp = fopen(argv[nofargs-1],"a");
 
-	char **argv1=(char**)malloc(sizeof(char*)*(nofargs-1));
-	char **argv2=(char**)malloc(sizeof(char*)*(2));
-	int j;
-	for(j=0;j<nofargs-2;j++){
-		argv1[j]=(char*)malloc(sizeof(char)*MAX_SIZE);
-        strcpy (argv1[j], argv[j]);
-	}
-	argv1[j]=NULL;
+	for(int i=nofargs-2;i<nofargs;i++)
+		argv[i] = NULL;
 
-		argv2[0]=(char*)malloc(sizeof(char)*MAX_SIZE);
-        strcpy (argv2[0], argv[nofargs-1]);
-		argv2[1]=NULL;
-
-	int fd[2];
-	pipe(fd);
-	int ret = fork();
-	if(ret==0){//child writes output to pipe
-		close(fd[0]);//close read end
-		close(1);//close stdout
-		dup2(fd[1],1);//output to pipe
-		execv(path,argv1);
-	}
-	else{//parent reads input from pipe
-		close(0);//close stdin
-		close(fd[1]);//close pipe_write
-		dup2(fd[0],0);//input from pipe
-		wait(NULL);
-		read(0,buf,PIPE_BUFFER);
-		FILE *fp;
-		if(strcmp(argv[i],">")==0)
-			fp = fopen(argv2[0],"w");
-		else
-			fp = fopen(argv2[0],"a");
-		fprintf(fp,"%s\n",buf);
-		exit(0);
-	}
+	dup2(fileno(fp), 1);
+	execv(path,argv);
 }
