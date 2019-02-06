@@ -78,7 +78,31 @@ bool check (char *filepath)
 
 }
 
-void greatersign(char *p,char **argv,int nofargs){
+void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbols
+	/*if(strinarr(argv,"<",nofargs) == 1)
+		lessersign(path,argv,nofargs);
+	if((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0))
+		greatersign(path,argv,nofargs);*/
+	printf("fun %d\n", strinarr(argv,"<",nofargs));
+}
+
+
+int strinarr(char **argv, char *sym, int nofargs) {
+	int i;
+	for(i=0;i<nofargs;i++) {
+		if(strcmp(argv[i],sym) == 0)
+			return 1;
+	}
+	return 0;
+}
+
+
+void lessersign(char *path,char **argv,int nofargs) {
+
+}
+
+
+void greatersign(char *path,char **argv,int nofargs){
 	int i=0;
 	while(i<nofargs && (strcmp(argv[i],">")!=0 && strcmp(argv[i],">>") !=0)){
 		i++;
@@ -109,7 +133,7 @@ void greatersign(char *p,char **argv,int nofargs){
 		close(fd[0]);//close read end
 		close(1);//close stdout
 		dup2(fd[1],1);//output to pipe
-		execv(p,argv1);
+		execv(path,argv1);
 	}
 	else{//parent reads input from pipe
 		close(0);//close stdin
