@@ -147,7 +147,7 @@ char *nextToken(char *str,int *point){
 				return temp;
 			}
 			temp[2]='\0';
-			*point=i+2;
+		*point=i+2;
 			return temp;
 		}
 		else{
