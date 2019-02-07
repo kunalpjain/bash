@@ -21,6 +21,10 @@ int main (void)
 		    	if(command==NULL){//if ENTER
 		       		continue; 
 		    	}
+		    	if(strcmp(command,"exit") == 0) {   //ability to exit from shell
+		    		printf("Exiting prompt\n");
+		    		exit(0);
+		    	}
 			       
 			
 			char *p = getfile(path,command);
@@ -35,7 +39,7 @@ int main (void)
 					printf ("Command %s not found\n", buf);
 					exit (1);
 				}
-				parsecommand(p,v,nofargs);
+				parsecommand(path,p,v,nofargs);
 				execv (p, v);
 			}
 			

@@ -105,9 +105,9 @@ bool check (char *filepath)
 
 
 
-void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbols
-	if(strinarr(argv, "|",nofargs) >= 0)
-		pipesign(path,argv,nofargs);
+void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
+	/*if(strinarr(argv, "|",nofargs) >= 0)
+		pipesign(completepath,path,argv,nofargs);*/
 	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
@@ -211,11 +211,14 @@ void lessersign(char *path,char **argv,int nofargs) {
 	
 
 	FILE *fp2;
-	if(grtsign >= 0)
+	if(grtsign >= 0) {
 		fp2 = fopen(argv[grtsign+1], "w");
-	else
+		printf("File %s remapped from %d to %d\n", argv[grtsign+1], fileno(fp2), 1);
+	}
+	else {
 		fp2 = fopen(argv[appsign+1], "a");
-	printf("File %s remapped from %d to %d\n", argv[nofargs-1], fileno(fp2), 1);
+		printf("File %s remapped from %d to %d\n", argv[appsign+1], fileno(fp2), 1);
+	}
 	dup2(fileno(fp2), 1);
 	for(int i=index;i<nofargs;i++)
 		argv[i] = NULL;
@@ -232,18 +235,18 @@ void greatersign(char *path,char **argv,int nofargs){
 	else
 		fp = fopen(argv[nofargs-1],"a");
 
+	printf("File %s remapped from %d to %d\2n", argv[nofargs-1], fileno(fp), 1);
 	for(int i=nofargs-2;i<nofargs;i++)
 		argv[i] = NULL;
 
-	printf("File %s remapped from %d to %d\n", argv[nofargs-1], fileno(fp), 1);
 	dup2(fileno(fp), 1);
 	printf("\n");
 	execv(path,argv);
 }
 
 
-void pipesign(char *path,char **argv,int nofargs) {
-
+void pipesign(char *completepath,char *path,char **argv,int nofargs) {
+/*
 	int countofpipe=0;
 	for(int i=0;i<nofargs;i++) {
 		if(strcmp(argv[i],"|") == 0) {
@@ -252,22 +255,30 @@ void pipesign(char *path,char **argv,int nofargs) {
 	}
 
 	int p[countofpipe][2];
+	for(int i=0;i<countofpipe;i++)
+		pipe(p[countofpipe]);
 	int index = strinarr(argv,"|",nofargs),prev=0;
 	for(int i=0;i<countofpipe;i++) {
-		/*while(index >= 0) {
+		while(index >= 0) {
 			char **newpath = subarray(argv,prev,index);
 			int p[2];
 			pipe(p);
 			dup2(p[1],1);
 			
-		}*/
+		}
 		if(i!=0)
 			dup2(p[0],0);
 		if(i!=countofpipe-1)
 			dup2(p[1],1);
+		char *newcommand = subarray(argv,prev,index);
 		if(fork()==0) {
-			parsecommand()
+			parsecommand(completepath,getfile(completepath,newcommand[0]),newcommand,index-prev+1);
+		}
+		else {
+			wait(NULL);
+			prev = index;
+			index = strinarr(newcommand,"|",index-prev+1);
 		}
 	}
-
+*/
 }
