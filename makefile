@@ -1,4 +1,4 @@
-all:	bash	
+all:	bash
 
 bash: functions.o shell.o
 	gcc -g functions.o shell.o 
