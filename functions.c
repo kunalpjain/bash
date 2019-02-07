@@ -36,16 +36,12 @@ char *getfile(char *path,char *firstarg){//returns file path of command entered 
 	strcpy (path2, path);
 	char *p = strtok_r (path2, delim, &savepath);//tokenize path2
 	int parser=0;
-	//char *p = nextToken(path2,&parser);
-	//printf("filep:%s\n",p);
 	while (p != NULL){
 	    strcpy (k, p);
 	    strcat (k, temp);
 	    if (check (k) == true)
 		break;
 	    p = strtok_r (NULL, delim, &savepath);
-	//	p = nextToken(path2,&parser);
-	    
 	}
 	if(p!=NULL)
 	    return k;
@@ -60,9 +56,7 @@ char *getfile(char *path,char *firstarg){//returns file path of command entered 
 char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and returns vector argv
 	char buf[MAX_SIZE];
 	strcpy(buf,buff);
-	char *delim2 = " ";
 	char *savebuf2;
-	//char *firstarg = strtok_r (buf, delim2, &savebuf2);
 	int parser=0;
 	char *firstarg = nextToken(buf,&parser);
 
@@ -78,12 +72,10 @@ char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and
 
 		strcpy (v[i], firstarg);
 
-	//	firstarg = strtok_r (NULL, delim2, &savebuf2);
 		firstarg = nextToken(buf,&parser);
 
 	}
 
-	v[*nofargs] = (char *) malloc (sizeof (char) * MAX_SIZE);
 	v[*nofargs] = NULL;
 	return v;
 }		
@@ -106,8 +98,10 @@ bool check (char *filepath)
 
 
 void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
+	//if(strinarr(argv, "|",nofargs) >= 0)
+	//	pipesign(completepath,path,argv,nofargs);
 	if(strinarr(argv, "||",nofargs) >= 0)
-		doublepipe(completepath,path,argv,nofargs);
+		doublePipe(path,argv,nofargs);
 	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
@@ -146,7 +140,7 @@ char *nextToken(char *str,int *point){
 		i++;
 	if(i>=strlen(str))
 		return NULL;	
-	if(str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==','){
+	if(str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==',' || str[i]=='&'){
 		temp[0]=str[i];
 		if(str[i]=='>' && str[i+1]=='>'){
 			temp[1]=str[i+1];
@@ -174,7 +168,7 @@ char *nextToken(char *str,int *point){
 	}
 	int j=0;
 	while(1){
-		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==',' || str[i]=='\0'){
+		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==',' || str[i]=='\0' ||str[i]=='&'){
 			temp[j]='\0';
 			*point=i;
 			return temp;
@@ -249,43 +243,44 @@ void greatersign(char *path,char **argv,int nofargs){
 void doublePipe(char *path1,char **argv,int nofargs){
 	extern char **environ;
     char *path = getenv ("PATH");
-	int MAX_BUF = 58;
+	int MAX_BUF = 10000;
 	int fd[2];
 	pipe(fd);
 	int index = strinarr(argv,"||",nofargs);
 	int index2 = strinarr(argv,",",nofargs);
-	if(index == -1 || index ==0 )
-		return;
-	char **argv1 = subarray(argv,index-1,index-1);
+	char **argv1 = subarray(argv,0,index-1);
 	char **argv2 = subarray(argv,index+1,index2-1);
-	char **argv3 = subarray(argv,index2+1,index2+1);
+	char **argv3 = subarray(argv,index2+1,nofargs-1);
 	char *path2 = getfile(path,argv[index+1]);
 	char *path3 = getfile(path,argv[index2+1]);
-	printf("path1:%s\n",path1);
-	printf("path2:%s\n",path2);
-	printf("path3:%s\n",path3);
 	char buf[MAX_BUF];
 	int ret = fork();
 	if(ret==0){//child
 		close(fd[0]);
-		dup2(fd[1],1);
+		dup2(fd[1],1);//write to pipe fd
 		execv(path1,argv1);
 	}
 	else{
-		read(fd[0],buf,MAX_BUF);
-		write(fd[1],buf,MAX_BUF);
-		//buf now has input
+		wait(NULL);
+		int fd2[2];
+		pipe(fd2);
+		int num_b = read(fd[0],buf,MAX_BUF);//copy pipe1 contents to both pipe1&2
+		write(fd2[1],buf,num_b);
+		write(fd[1],buf,num_b);
 		int ret2 = fork();
 		if(ret2==0){
-			dup2(fd[0],0);
+			dup2(fd[0],0);//read from pipe 1 and close all others
 			close(fd[1]);
+			close(fd2[1]);
+			close(fd2[0]);
 			execv(path2,argv2);
 		}	
 		else{
-			write(fd[1],buf,MAX_BUF);
-			wait(NULL);
-			dup2(fd[0],0);
+			dup2(fd2[0],0);//read from pipe 2 and close all others
 			close(fd[1]);
+			close(fd[0]);
+			close(fd2[1]);
+			wait(NULL);
 			execv(path3,argv3);
 		}
 	}
