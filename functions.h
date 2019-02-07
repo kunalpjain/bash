@@ -18,3 +18,5 @@ char **subarray(char **argv, int start, int end);
 void lessersign(char *p,char **argv,int nofargs);
 void greatersign(char *p,char **argv,int nofargs);
 void pipesign(char *path,char **argv,int nofargs);
+void lessersign(char *p,char **argv,int nofargs);
+char *nextToken(char *str,int *point);
