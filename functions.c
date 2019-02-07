@@ -106,6 +106,8 @@ bool check (char *filepath)
 
 
 void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbols
+	if(strinarr(argv, "|",nofargs) >= 0)
+		pipesign(path,argv,nofargs);
 	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
@@ -120,6 +122,19 @@ int strinarr(char **argv, char *sym, int nofargs) {	// returns index at which st
 	}
 	return -1;
 }
+
+
+
+char **subarray(char **argv, int start, int end) {
+
+	char **newpath = (char **) malloc (sizeof(char *) * (end - start + 1));
+	for(int i=0;i<=end-start;i++) {
+		newpath[i] = (char *) malloc (sizeof(char) * MAX_SIZE);
+		newpath[i] = argv[i+start];
+	}
+	return newpath;
+}
+
 
 
 char *nextToken(char *str,int *point){
@@ -171,6 +186,7 @@ char *nextToken(char *str,int *point){
 	return temp;
 }
 
+
 void lessersign(char *path,char **argv,int nofargs) {
 
 	int index = strinarr(argv, "<",nofargs);
@@ -183,11 +199,13 @@ void lessersign(char *path,char **argv,int nofargs) {
 	FILE *fp = fopen(argv[index + 1], "r");
 	dup2(fileno(fp), 0);
 	int grtsign = strinarr(argv, ">", nofargs), appsign=strinarr(argv, ">>", nofargs);
+	printf("File %s remapped from %d to %d\n", argv[index+1], fileno(fp), 0);
 	
 
 	if(grtsign == -1 && appsign == -1) {
-		for(int i=index;i<nofargs;i++)
+		for(int i =index;i<nofargs;i++)
 			argv[i] = NULL;
+		printf("\n");
 		execv(path,argv);
 	}
 	
@@ -197,9 +215,11 @@ void lessersign(char *path,char **argv,int nofargs) {
 		fp2 = fopen(argv[grtsign+1], "w");
 	else
 		fp2 = fopen(argv[appsign+1], "a");
+	printf("File %s remapped from %d to %d\n", argv[nofargs-1], fileno(fp2), 1);
 	dup2(fileno(fp2), 1);
 	for(int i=index;i<nofargs;i++)
 		argv[i] = NULL;
+	printf("\n");
 	execv(path,argv);
 }
 
@@ -215,6 +235,39 @@ void greatersign(char *path,char **argv,int nofargs){
 	for(int i=nofargs-2;i<nofargs;i++)
 		argv[i] = NULL;
 
+	printf("File %s remapped from %d to %d\n", argv[nofargs-1], fileno(fp), 1);
 	dup2(fileno(fp), 1);
+	printf("\n");
 	execv(path,argv);
+}
+
+
+void pipesign(char *path,char **argv,int nofargs) {
+
+	int countofpipe=0;
+	for(int i=0;i<nofargs;i++) {
+		if(strcmp(argv[i],"|") == 0) {
+			countofpipe++;
+		}
+	}
+
+	int p[countofpipe][2];
+	int index = strinarr(argv,"|",nofargs),prev=0;
+	for(int i=0;i<countofpipe;i++) {
+		/*while(index >= 0) {
+			char **newpath = subarray(argv,prev,index);
+			int p[2];
+			pipe(p);
+			dup2(p[1],1);
+			
+		}*/
+		if(i!=0)
+			dup2(p[0],0);
+		if(i!=countofpipe-1)
+			dup2(p[1],1);
+		if(fork()==0) {
+			parsecommand()
+		}
+	}
+
 }
