@@ -20,3 +20,4 @@ void greatersign(char *p,char **argv,int nofargs);
 void pipesign(char *path,char **argv,int nofargs);
 void lessersign(char *p,char **argv,int nofargs);
 char *nextToken(char *str,int *point);
+void doublePipe(char *path1,char **argv,int nofargs);

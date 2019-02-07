@@ -36,6 +36,7 @@ int main (void)
 					exit (1);
 				}
 				parsecommand(p,v,nofargs);
+//				doublePipe(p,v,nofargs);
 				execv (p, v);
 			}
 			

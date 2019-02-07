@@ -108,6 +108,8 @@ bool check (char *filepath)
 void parsecommand(char *path,char **argv,int nofargs) { //indexes all the symbols
 	if(strinarr(argv, "|",nofargs) >= 0)
 		pipesign(path,argv,nofargs);
+	if(strinarr(argv, "||",nofargs) >= 0)
+		doublePipe(path,argv,nofargs);
 	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
@@ -127,11 +129,12 @@ int strinarr(char **argv, char *sym, int nofargs) {	// returns index at which st
 
 char **subarray(char **argv, int start, int end) {
 
-	char **newpath = (char **) malloc (sizeof(char *) * (end - start + 1));
+	char **newpath = (char **) malloc (sizeof(char *) * (end - start + 2));
 	for(int i=0;i<=end-start;i++) {
 		newpath[i] = (char *) malloc (sizeof(char) * MAX_SIZE);
-		newpath[i] = argv[i+start];
+		strcpy(newpath[i],argv[i+start]);
 	}
+	newpath[end-start+1]=NULL;
 	return newpath;
 }
 
@@ -145,7 +148,7 @@ char *nextToken(char *str,int *point){
 		i++;
 	if(i>=strlen(str))
 		return NULL;	
-	if(str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==' '){
+	if(str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==','){
 		temp[0]=str[i];
 		if(str[i]=='>' && str[i+1]=='>'){
 			temp[1]=str[i+1];
@@ -173,7 +176,7 @@ char *nextToken(char *str,int *point){
 	}
 	int j=0;
 	while(1){
-		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]=='\0'){
+		if(str[i]==' ' || str[i]=='>' || str[i]=='<' || str[i]=='|' || str[i]==',' || str[i]=='\0'){
 			temp[j]='\0';
 			*point=i;
 			return temp;
@@ -272,3 +275,49 @@ void pipesign(char *path,char **argv,int nofargs) {
 //
 }
 //*/
+
+void doublePipe(char *path1,char **argv,int nofargs){
+	extern char **environ;
+    char *path = getenv ("PATH");
+	int MAX_BUF = 58;
+	int fd[2];
+	pipe(fd);
+	int index = strinarr(argv,"||",nofargs);
+	int index2 = strinarr(argv,",",nofargs);
+	if(index == -1 || index ==0 )
+		return;
+	char **argv1 = subarray(argv,index-1,index-1);
+	char **argv2 = subarray(argv,index+1,index2-1);
+	char **argv3 = subarray(argv,index2+1,index2+1);
+	char *path2 = getfile(path,argv[index+1]);
+	char *path3 = getfile(path,argv[index2+1]);
+	printf("path1:%s\n",path1);
+	printf("path2:%s\n",path2);
+	printf("path3:%s\n",path3);
+	char buf[MAX_BUF];
+	int ret = fork();
+	if(ret==0){//child
+		close(fd[0]);
+		dup2(fd[1],1);
+		execv(path1,argv1);
+	}
+	else{
+		read(fd[0],buf,MAX_BUF);
+		write(fd[1],buf,MAX_BUF);
+		//buf now has input
+		int ret2 = fork();
+		if(ret2==0){
+			dup2(fd[0],0);
+			close(fd[1]);
+			execv(path2,argv2);
+		}	
+		else{
+			write(fd[1],buf,MAX_BUF);
+			wait(NULL);
+			dup2(fd[0],0);
+			close(fd[1]);
+			execv(path3,argv3);
+		}
+	}
+}
+	
