@@ -243,31 +243,32 @@ void greatersign(char *path,char **argv,int nofargs){
 
 
 void pipesign(char *path,char **argv,int nofargs) {
-
-	int countofpipe=0;
-	for(int i=0;i<nofargs;i++) {
-		if(strcmp(argv[i],"|") == 0) {
-			countofpipe++;
-		}
-	}
-
-	int p[countofpipe][2];
-	int index = strinarr(argv,"|",nofargs),prev=0;
-	for(int i=0;i<countofpipe;i++) {
-		/*while(index >= 0) {
-			char **newpath = subarray(argv,prev,index);
-			int p[2];
-			pipe(p);
-			dup2(p[1],1);
-			
-		}*/
-		if(i!=0)
-			dup2(p[0],0);
-		if(i!=countofpipe-1)
-			dup2(p[1],1);
-		if(fork()==0) {
-			parsecommand()
-		}
-	}
-
+//
+//	int countofpipe=0;
+//	for(int i=0;i<nofargs;i++) {
+//		if(strcmp(argv[i],"|") == 0) {
+//			countofpipe++;
+//		}
+//	}
+//
+//	int p[countofpipe][2];
+//	int index = strinarr(argv,"|",nofargs),prev=0;
+//	for(int i=0;i<countofpipe;i++) {
+//		/*while(index >= 0) {
+//			char **newpath = subarray(argv,prev,index);
+//			int p[2];
+//			pipe(p);
+//			dup2(p[1],1);
+//			
+//		}*/
+//		if(i!=0)
+//			dup2(p[0],0);
+//		if(i!=countofpipe-1)
+//			dup2(p[1],1);
+//		if(fork()==0) {
+//			parsecommand()
+//		}
+//	}
+//
 }
+//*/
