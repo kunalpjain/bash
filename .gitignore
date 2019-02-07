@@ -1,5 +1,3 @@
-c.c
-private
 a.out
-pub
-backup.c
+function.o
+shell.o
