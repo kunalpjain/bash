@@ -230,7 +230,7 @@ void greatersign(char *path,char **argv,int nofargs){
 	else
 		fp = fopen(argv[nofargs-1],"a");
 
-	printf("File %s remapped from %d to %d\2n", argv[nofargs-1], fileno(fp), 1);
+	printf("File %s remapped from %d to 1 \n", argv[nofargs-1], fileno(fp));
 	for(int i=nofargs-2;i<nofargs;i++)
 		argv[i] = NULL;
 
