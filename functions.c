@@ -97,21 +97,37 @@ bool check (char *filepath)
 
 
 
+
+
+
+
+
+
+
+
+
 void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
-	//if(strinarr(argv, "|",nofargs) >= 0)
-	//	pipesign(completepath,path,argv,nofargs);
+	// write(fileno(stdout),"%s\n",10);
+	if(strinarr(argv, "|",nofargs) >= 0)
+		pipesign(completepath,path,argv,nofargs);
 	if(strinarr(argv, "||",nofargs) >= 0)
 		doublePipe(path,argv,nofargs);
 	if(strinarr(argv,"<",nofargs) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
+	else {
+		FILE *fpout = fopen("outlog.txt","w");
+		fprintf(fpout, "%s\n", path);
+		fclose(fpout);
+		execv(path,argv);
+	}
 }
 
 int strinarr(char **argv, char *sym, int nofargs) {	// returns index at which str is present in arr, -1 if not found
 	int i;
 	for(i=0;i<nofargs;i++) {
-		if(strcmp(argv[i],sym) == 0)
+		if(argv[i]!=NULL && strcmp(argv[i],sym) == 0)
 			return i;
 	}
 	return -1;
@@ -286,8 +302,8 @@ void doublePipe(char *path1,char **argv,int nofargs){
 	}
 }
 
-//void pipesign(char *completepath,char *path,char **argv,int nofargs) {
-/*
+void pipesign(char *completepath,char *path,char **argv,int nofargs) {
+
 	int countofpipe=0;
 	for(int i=0;i<nofargs;i++) {
 		if(strcmp(argv[i],"|") == 0) {
@@ -295,31 +311,40 @@ void doublePipe(char *path1,char **argv,int nofargs){
 		}
 	}
 
-	int p[countofpipe][2];
-	for(int i=0;i<countofpipe;i++)
-		pipe(p[countofpipe]);
+
+	int p[countofpipe+1][2];
+	for(int i=0;i<=countofpipe;i++)
+		pipe(p[i]);
 	int index = strinarr(argv,"|",nofargs),prev=0;
-	for(int i=0;i<countofpipe;i++) {
-		while(index >= 0) {
-			char **newpath = subarray(argv,prev,index);
-			int p[2];
-			pipe(p);
-			dup2(p[1],1);
-			
-		}
-		if(i!=0)
-			dup2(p[0],0);
-		if(i!=countofpipe-1)
-			dup2(p[1],1);
-		char *newcommand = subarray(argv,prev,index);
+
+	for(int i=0;i<=countofpipe;i++) {
+
+		char **newcommand = subarray(argv,prev,index-1);
+		
 		if(fork()==0) {
+			if(i!=0) {
+				// printf("changing read pipe for %s\n", newcommand[0]);
+				dup2(p[i-1][0],0);
+				// printf("changed read\n");
+			}
+			if(i!=countofpipe) {
+				// printf("changing write pipe for %s\n", newcommand[0]);
+				dup2(p[i][1],1);
+				// printf("changed write\n");
+			}
 			parsecommand(completepath,getfile(completepath,newcommand[0]),newcommand,index-prev+1);
 		}
 		else {
+			close(p[i-1][0]);
+			close(p[i][1]);
 			wait(NULL);
-			prev = index;
-			index = strinarr(newcommand,"|",index-prev+1);
+			prev = index+1;
+			if(i!=countofpipe-1)
+				index = strinarr(newcommand,"|",index-prev);
+			else
+				index = nofargs;
 		}
 	}
-*/
-	
+	exit(0);
+
+}
