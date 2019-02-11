@@ -39,7 +39,7 @@ int main (void)
 					printf ("Command %s not found\n", buf);
 					exit (1);
 				}
-				parsecommand(path,p,v,nofargs);
+				parsecommand(path,p,v,nofargs,0,nofargs);
 				execv (p, v);
 			}
 			

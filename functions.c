@@ -18,10 +18,6 @@ char *getcommand(char *buf,int *noofargs){//gets the first command and updates n
 }
 
 
-
-
-
-
 char *getfile(char *path,char *firstarg){//returns file path of command entered by user
 	char *delim=":";
 	char *savepath;
@@ -97,7 +93,8 @@ bool check (char *filepath)
 void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
 	// write(fileno(stdout),"%s\n",10);
 	if(strinarr(argv, "|",nofargs,0) >= 0)
-		pipesign(completepath,path,argv,nofargs);
+	//	pipesign(completepath,path,argv,nofargs);
+		pipecommand(completepath,path,argv,nofargs);
 	if(strinarr(argv, "||",nofargs,0) >= 0)
 		doublePipe(path,argv,nofargs);
 	if(strinarr(argv, "|||",nofargs,0) >= 0)
@@ -113,7 +110,29 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 		execv(path,argv);
 	}
 }
-
+/*
+void parsecommand(char *completepath,char *path,char **argv,int nofargs,int start,int end) { //indexes all the symbols
+    // write(fileno(stdout),"%s\n",10);
+    if(strinarr(argv, "|",nofargs,0) >= start && strinarr(argv,"|",nofargs,0)<=end)
+    //  pipesign(completepath,path,argv,nofargs);
+        pipecommand(completepath,path,argv,nofargs);
+    if(strinarr(argv, "||",nofargs,0) >= start && strinarr(argv,"||",nofargs,0)<=end)
+        doublePipe(path,argv,nofargs);
+    if(strinarr(argv, "|||",nofargs,0) >= start && strinarr(argv,"|||",nofargs,0)<=end)
+        TriplePipe(path,argv,nofargs);
+    if(strinarr(argv, "<",nofargs,0) >= start && strinarr(argv,"<",nofargs,0)<=end)
+    //if(strinarr(argv,"<",nofargs,0) >= 0) 
+        lessersign(path,argv,nofargs);
+    if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == start) || (strcmp(argv[nofargs-2], ">>") == start)))
+        greatersign(path,argv,nofargs);
+    else {
+        FILE *fpout = fopen("outlog.txt","w");
+        fprintf(fpout, "%s\n", path);
+        fclose(fpout);
+        execv(path,argv);
+    }
+}
+*/
 int strinarr(char **argv, char *sym, int nofargs,int start_index) {	// returns index at which str is present in arr, -1 if not found
 	int i;
 	for(i=start_index;i<nofargs;i++) {
@@ -295,7 +314,7 @@ void doublePipe(char *path1,char **argv,int nofargs){
 void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 
 	int countofpipe=0;
-	for(int i=0;i<nofargs;i++) {
+	for(int i=0;i<nofargs;i++) {//counting number of pipes
 		if(strcmp(argv[i],"|") == 0) {
 			countofpipe++;
 		}
@@ -400,4 +419,50 @@ void TriplePipe(char *path1,char **argv,int nofargs){
 		}
 	}
 }
+//new pipe
+void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 
+	int countofpipe=0;
+	for(int i=0;i<nofargs;i++) {//counting number of pipes
+		if(strcmp(argv[i],"|") == 0) {
+			countofpipe++;
+		}
+	}
+
+		int p[countofpipe][2];
+		for(int i=0;i<countofpipe;i++)//create that many pipes
+			pipe(p[i]);
+		int prev_index=-1;
+		int index;
+
+	for(int i=0;i<=countofpipe;i++) {
+		if(i!=countofpipe)
+			index = strinarr(argv,"|",nofargs,prev_index+1);
+		else
+			index = nofargs;
+
+		char *path1 = getfile(completepath,argv[prev_index+1]);
+		char **argv1 = subarray(argv,prev_index+1,index-1); 
+		if(fork()==0) {//child
+			if(i!=0) {//read from prev pipe
+				dup2(p[i-1][0],0);
+				close(p[i-1][1]);
+			}
+			if(i!=countofpipe) {//write to next pipe
+				dup2(p[i][1],1);
+			}
+			//execv(path1,argv1);
+			parsecommand(completepath,path1,argv1,index-prev_index-1);
+		}
+		else {
+			if(i!=0){//close the pipe_w for child to read
+				close(p[i-1][0]);
+				close(p[i-1][1]);
+			}
+			wait(NULL);
+			prev_index = index;
+		}
+	}
+	exit(0);
+
+}
