@@ -94,25 +94,15 @@ bool check (char *filepath)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
 	// write(fileno(stdout),"%s\n",10);
-	if(strinarr(argv, "|",nofargs) >= 0)
+	if(strinarr(argv, "|",nofargs,0) >= 0)
 		pipesign(completepath,path,argv,nofargs);
-	if(strinarr(argv, "||",nofargs) >= 0)
+	if(strinarr(argv, "||",nofargs,0) >= 0)
 		doublePipe(path,argv,nofargs);
-	if(strinarr(argv,"<",nofargs) >= 0) 
+	if(strinarr(argv, "|||",nofargs,0) >= 0)
+		TriplePipe(path,argv,nofargs);
+	if(strinarr(argv,"<",nofargs,0) >= 0) 
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
@@ -124,9 +114,9 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 	}
 }
 
-int strinarr(char **argv, char *sym, int nofargs) {	// returns index at which str is present in arr, -1 if not found
+int strinarr(char **argv, char *sym, int nofargs,int start_index) {	// returns index at which str is present in arr, -1 if not found
 	int i;
-	for(i=0;i<nofargs;i++) {
+	for(i=start_index;i<nofargs;i++) {
 		if(argv[i]!=NULL && strcmp(argv[i],sym) == 0)
 			return i;
 	}
@@ -200,7 +190,7 @@ char *nextToken(char *str,int *point){
 
 void lessersign(char *path,char **argv,int nofargs) {
 
-	int index = strinarr(argv, "<",nofargs);
+	int index = strinarr(argv, "<",nofargs,0);
 	if(access(argv[index + 1], F_OK) == -1) {
 		printf("No such file or directory\n");
 		exit(0);
@@ -209,7 +199,7 @@ void lessersign(char *path,char **argv,int nofargs) {
 
 	FILE *fp = fopen(argv[index + 1], "r");
 	dup2(fileno(fp), 0);
-	int grtsign = strinarr(argv, ">", nofargs), appsign=strinarr(argv, ">>", nofargs);
+	int grtsign = strinarr(argv, ">", nofargs,0), appsign=strinarr(argv, ">>", nofargs,0);
 	printf("File %s remapped from %d to %d\n", argv[index+1], fileno(fp), 0);
 	
 
@@ -262,8 +252,8 @@ void doublePipe(char *path1,char **argv,int nofargs){
 	int MAX_BUF = 10000;
 	int fd[2];
 	pipe(fd);
-	int index = strinarr(argv,"||",nofargs);
-	int index2 = strinarr(argv,",",nofargs);
+	int index = strinarr(argv,"||",nofargs,0);
+	int index2 = strinarr(argv,",",nofargs,index+1);
 	char **argv1 = subarray(argv,0,index-1);
 	char **argv2 = subarray(argv,index+1,index2-1);
 	char **argv3 = subarray(argv,index2+1,nofargs-1);
@@ -315,7 +305,7 @@ void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 	int p[countofpipe+1][2];
 	for(int i=0;i<=countofpipe;i++)
 		pipe(p[i]);
-	int index = strinarr(argv,"|",nofargs),prev=0;
+	int index = strinarr(argv,"|",nofargs,0),prev=0;
 
 	for(int i=0;i<=countofpipe;i++) {
 
@@ -340,7 +330,7 @@ void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 			wait(NULL);
 			prev = index+1;
 			if(i!=countofpipe-1)
-				index = strinarr(newcommand,"|",index-prev);
+				index = strinarr(newcommand,"|",index-prev,0);
 			else
 				index = nofargs;
 		}
@@ -348,3 +338,66 @@ void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 	exit(0);
 
 }
+
+void TriplePipe(char *path1,char **argv,int nofargs){
+	extern char **environ;
+    char *path = getenv ("PATH");
+	int MAX_BUF = 10000;
+	int fd[2];
+	pipe(fd);
+	int index = strinarr(argv,"|||",nofargs,0);
+	int index2 = strinarr(argv,",",nofargs,index+1);
+	int index3 = strinarr(argv,",",nofargs,index2+1);
+	char **argv1 = subarray(argv,0,index-1);
+	char **argv2 = subarray(argv,index+1,index2-1);
+	char **argv3 = subarray(argv,index2+1,index3-1);
+	char **argv4 = subarray(argv,index3+1,nofargs-1);
+	char *path2 = getfile(path,argv[index+1]);
+	char *path3 = getfile(path,argv[index2+1]);
+	char *path4 = getfile(path,argv[index3+1]);
+	char buf[MAX_BUF];
+	int ret = fork();
+	if(ret==0){//child
+		close(fd[0]);
+		dup2(fd[1],1);//write to pipe fd
+		execv(path1,argv1);//execute before ||| and store in pipe fd
+	}
+	else{
+		wait(NULL);
+		int fd2[2];
+		int fd3[2];
+		pipe(fd2);
+		pipe(fd3);
+		int num_b = read(fd[0],buf,MAX_BUF);//copy pipe1 contents to pipe 1,2 and 3
+		write(fd2[1],buf,num_b);
+		write(fd3[1],buf,num_b);
+		write(fd[1],buf,num_b);
+
+		close(fd[1]);				//close all write end pipes
+		close(fd2[1]);
+		close(fd3[1]);
+
+		int ret2 = fork();
+		if(ret2==0){
+			dup2(fd[0],0);//read from pipe fd and close all others
+			close(fd3[0]);
+			close(fd2[0]);
+			execv(path2,argv2);//execute 1st command,write to stdout
+		}	
+		else{
+			dup2(fd2[0],0);//read from pipe fd2 and close all others
+			close(fd[0]);
+			wait(NULL);
+			int ret3 = fork();
+			if(ret3==0){
+				dup2(fd3[0],0);//read from pipe fd3 and close all others
+				close(fd[0]);
+				close(fd2[0]);
+				execv(path3,argv3);//execute 2nd command ,write to stdout
+			}
+			wait(NULL);
+			execv(path4,argv4);//exec 3rd command,write to stdout
+		}
+	}
+}
+
