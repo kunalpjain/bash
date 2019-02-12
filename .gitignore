@@ -1,3 +1,5 @@
 a.out
 function.o
 shell.o
+backup.o
+backcup.c
