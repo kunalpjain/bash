@@ -2,6 +2,7 @@
 
 int main (void)
 {
+	signal(SIGINT, handler);
 	extern char **environ;
 	char *path = getenv ("PATH");
 	char buf[MAX_SIZE];
