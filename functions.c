@@ -1,17 +1,27 @@
 #include "functions.h"
 
 char lookuptable[MAX_SIZE][MAX_SIZE];
-
 void handler(int signo) {
-	char *path = getenv ("PATH");
-	printf("Enter your desired command: ");
+	for(int i=0;i<10;i++) {
+		strcpy(lookuptable[i],"ls -l");
+	}
+	char *completepath = getenv ("PATH");
+	int index,nofargs=0;
+	bool var=false;
+	printf("\nEnter your desired command: ");
 	fflush(stdout);
-	char c;
-	scanf("%c",&c);
-	// printf("%s\n", path);
-	char *path1 = getfile(path,lookuptable[c-'0']);
-	// parsecommand(
-
+	scanf("%d",&index);
+	char *commandstring = lookuptable[index];
+	char *firstarg = getcommand(commandstring,&nofargs);
+	char *pathofcommand = getfile(completepath,firstarg);
+	char **argv = getargv(commandstring,&nofargs,&var);
+	if(fork()==0)
+		parsecommand(completepath, pathofcommand, argv, nofargs);
+	else {
+		wait(NULL);
+		fflush(stdout);
+		fflush(stdin);
+	}
 }
 
 char *getcommand(char *buf,int *noofargs){//gets the first command and updates no of args
@@ -117,12 +127,8 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
-	else {
-		/*FILE *fpout = fopen("outlog.txt","w");
-		fprintf(fpout, "%s\n", path);
-		fclose(fpout);*/
+	else
 		execv(path,argv);
-	}
 }
 
 int strinarr(char **argv, char *sym, int nofargs,int start_index) {	// returns index at which str is present in arr, -1 if not found
