@@ -8,6 +8,7 @@
 
 #define MAX_SIZE 100
 
+void handler(int signo);
 bool check (char *filepath);
 char *getfile(char *path,char *firstarg);
 char **getargv(char *buff,int *nofargs,bool *back_pr);

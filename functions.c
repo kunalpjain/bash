@@ -1,5 +1,29 @@
 #include "functions.h"
 
+char lookuptable[MAX_SIZE][MAX_SIZE];
+void handler(int signo) {
+	for(int i=0;i<10;i++) {
+		strcpy(lookuptable[i],"ls -l");
+	}
+	char *completepath = getenv ("PATH");
+	int index,nofargs=0;
+	bool var=false;
+	printf("\nEnter your desired command: ");
+	fflush(stdout);
+	scanf("%d",&index);
+	char *commandstring = lookuptable[index];
+	char *firstarg = getcommand(commandstring,&nofargs);
+	char *pathofcommand = getfile(completepath,firstarg);
+	char **argv = getargv(commandstring,&nofargs,&var);
+	if(fork()==0)
+		parsecommand(completepath, pathofcommand, argv, nofargs);
+	else {
+		wait(NULL);
+		fflush(stdout);
+		fflush(stdin);
+	}
+}
+
 char *getcommand(char *buf,int *noofargs){//gets the first command and updates no of args
 	char *delim = " ";
 	char *savebuf;
@@ -103,36 +127,10 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
-	else {
-		FILE *fpout = fopen("outlog.txt","w");
-		fprintf(fpout, "%s\n", path);
-		fclose(fpout);
+	else
 		execv(path,argv);
-	}
 }
-/*
-void parsecommand(char *completepath,char *path,char **argv,int nofargs,int start,int end) { //indexes all the symbols
-    // write(fileno(stdout),"%s\n",10);
-    if(strinarr(argv, "|",nofargs,0) >= start && strinarr(argv,"|",nofargs,0)<=end)
-    //  pipesign(completepath,path,argv,nofargs);
-        pipecommand(completepath,path,argv,nofargs);
-    if(strinarr(argv, "||",nofargs,0) >= start && strinarr(argv,"||",nofargs,0)<=end)
-        doublePipe(path,argv,nofargs);
-    if(strinarr(argv, "|||",nofargs,0) >= start && strinarr(argv,"|||",nofargs,0)<=end)
-        TriplePipe(path,argv,nofargs);
-    if(strinarr(argv, "<",nofargs,0) >= start && strinarr(argv,"<",nofargs,0)<=end)
-    //if(strinarr(argv,"<",nofargs,0) >= 0) 
-        lessersign(path,argv,nofargs);
-    if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == start) || (strcmp(argv[nofargs-2], ">>") == start)))
-        greatersign(path,argv,nofargs);
-    else {
-        FILE *fpout = fopen("outlog.txt","w");
-        fprintf(fpout, "%s\n", path);
-        fclose(fpout);
-        execv(path,argv);
-    }
-}
-*/
+
 int strinarr(char **argv, char *sym, int nofargs,int start_index) {	// returns index at which str is present in arr, -1 if not found
 	int i;
 	for(i=start_index;i<nofargs;i++) {

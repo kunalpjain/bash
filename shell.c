@@ -2,11 +2,13 @@
 
 int main (void)
 {
+	signal(SIGINT, handler);
 	extern char **environ;
 	char *path = getenv ("PATH");
 	char buf[MAX_SIZE];
 	while(1){
 
+		fflush (stdout);
 		printf ("prompt> ");
 		fflush (stdout);
 
@@ -17,15 +19,14 @@ int main (void)
                		buf[i] = '\0';
 			int nofargs=0;
 			char *command = getcommand(buf,&nofargs); //nofargs updated too
-		    	
-		    	if(command==NULL){//if ENTER
-		       		continue; 
-		    	}
-		    	if(strcmp(command,"exit") == 0) {   //ability to exit from shell
-		    		printf("Exiting prompt\n");
-		    		exit(0);
-		    	}
-			       
+	    	
+	    	if(command==NULL){//if ENTER
+	       		continue; 
+	    	}
+			if(strcmp(path,"exit") == 0) {   //ability to exit from shell
+	    		printf("Exiting prompt\n");
+	    		exit(0);      
+    		}
 			
 			char *p = getfile(path,command);
 			bool back_pr = false;
@@ -39,7 +40,7 @@ int main (void)
 					printf ("Command %s not found\n", buf);
 					exit (1);
 				}
-				parsecommand(path,p,v,nofargs,0,nofargs);
+				parsecommand(path,p,v,nofargs);
 				execv (p, v);
 			}
 			
