@@ -127,6 +127,8 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
+	if(strinarr(argv,"sc",nofargs,0) >= 0)
+		customcommands(argv,nofargs);
 	else
 		execv(path,argv);
 }
@@ -463,4 +465,12 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 	}
 	exit(0);
 
+}
+void customcommands(char **argv,int nofargs) {
+	if(strcmp(argv[1],"-i")==0) {
+		printf("adding\n");
+		strcpy(lookuptable[(int)atoi(argv[2])],argv[3]);
+	}
+	if(strcmp(argv[1],"-d")==0)
+		strcpy(lookuptable[(int)atoi(argv[2])],"empty");
 }
