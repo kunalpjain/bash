@@ -2,7 +2,16 @@
 
 int main (void)
 {
-	signal(SIGINT, handler);
+/*
+	struct sigaction act;
+	memset (&act, '\0', sizeof(act));
+	//act.sa_sigaction = &handler;
+	act.sa_handler = &handler;
+	act.sa_flags = SA_SIGINFO;
+	sigaction(SIGINT, &act, NULL);
+*/
+	remove("lookup.txt");
+	signal(SIGINT,&handler);
 	extern char **environ;
 	char *path = getenv ("PATH");
 	char buf[MAX_SIZE];
@@ -36,10 +45,14 @@ int main (void)
 
 			
 			if (ret == 0){
-				if (p == NULL) {
-					printf ("Command %s not found\n", buf);
-					exit (1);
+
+				if (p == NULL && strcmp(v[0],"sc")==0) {
+					printf("args:%d\n",nofargs);
+					customcommands(v,nofargs);
+					//printf ("Command %s not found\n", buf);
+					exit (0);
 				}
+
 				parsecommand(path,p,v,nofargs);
 				execv (p, v);
 			}

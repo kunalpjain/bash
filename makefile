@@ -1,12 +1,12 @@
 all:	bash
 
-bash: functions.o shell.o
-	gcc -g functions.o shell.o -o a
+bash: functions.o shell.o functions.h
+	gcc -g functions.o shell.o 
 
-functions.o: functions.c
+functions.o: functions.c functions.h
 	gcc -g -c functions.c
 
-shell.o:	shell.c
+shell.o:	shell.c functions.h
 	gcc -g -c shell.c
 
 clean:

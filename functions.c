@@ -1,20 +1,25 @@
 #include "functions.h"
 
-char lookuptable[MAX_SIZE][MAX_SIZE];
 void handler(int signo) {
-	for(int i=0;i<10;i++) {
-		strcpy(lookuptable[i],"ls -l");
-	}
+	FILE *fp = fopen("lookup.txt","r");
 	char *completepath = getenv ("PATH");
 	int index,nofargs=0;
 	bool var=false;
 	printf("\nEnter your desired command: ");
 	fflush(stdout);
 	scanf("%d",&index);
-	char *commandstring = lookuptable[index];
-	char *firstarg = getcommand(commandstring,&nofargs);
+	char command[100];
+	int i;
+	while(fscanf(fp,"%d:%s\n",&i,command)>0){
+		if(i==index)
+			break;
+	}
+	
+	printf("command[%d]:%s\n",index,command);
+	fclose(fp);
+	char *firstarg = getcommand(command,&nofargs);
 	char *pathofcommand = getfile(completepath,firstarg);
-	char **argv = getargv(commandstring,&nofargs,&var);
+	char **argv = getargv(command,&nofargs,&var);
 	if(fork()==0)
 		parsecommand(completepath, pathofcommand, argv, nofargs);
 	else {
@@ -127,6 +132,8 @@ void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //ind
 		lessersign(path,argv,nofargs);
 	if((nofargs>2) && ((strcmp(argv[nofargs-2], ">") == 0) || (strcmp(argv[nofargs-2], ">>") == 0)))
 		greatersign(path,argv,nofargs);
+	if(strinarr(argv,"sc",nofargs,0) >= 0)
+		customcommands(argv,nofargs);
 	else
 		execv(path,argv);
 }
@@ -463,4 +470,23 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 	}
 	exit(0);
 
+}
+void customcommands(char **argv,int nofargs) {
+	if(strcmp(argv[1],"-i")==0) {
+		printf("adding\n");
+		int index = atoi(argv[2]);
+		printf("index%d\n",index);
+		FILE *fp = fopen("lookup.txt","a");
+		fprintf(fp,"%d:%s\n",index,argv[3]);
+		fclose(fp);
+		return;
+	}
+	if(strcmp(argv[1],"-d")==0){
+		//FILE *fp = fopen("lookup.txt","r+");
+		//fseek(fp,0,SEEK_SET);
+		//while(fscanf(fp,"%d:%s\n",&i,command)>0){
+		//	if(i==index){
+		//		break;
+		}
+		//strcpy(lookuptable[(int)atoi(argv[2])],"empty");
 }

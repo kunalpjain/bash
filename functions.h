@@ -5,6 +5,7 @@
 #include<sys/wait.h>
 #include<sys/types.h>
 #include<stdbool.h>
+#include<signal.h>
 
 #define MAX_SIZE 100
 
@@ -25,3 +26,5 @@ char *nextToken(char *str,int *point);
 void doublePipe(char *path1,char **argv,int nofargs);
 void TriplePipe(char *path1,char **argv,int nofargs);
 void parsecommand2(char *completepath,char *p,char **argv,int nofargs);
+void customcommands(char **argv,int nofargs);
+
