@@ -13,5 +13,4 @@ typedef struct my_msgbuf{
 	long mtype;		//1->normal msg,2->create grp,3->join group
 	char mtext[2000];
 	long spid;//sender pid
-	long gpid;//group id
 }my_msgbuf;

@@ -18,7 +18,6 @@ typedef struct groupsList{          //list of all groups
 }groupsList;
 
 
-void SendMessageToGroup(my_msgbuf buf,int gpid,groupsList *list);
 groupsList *joinGroup(int gpid,int pid,groupsList *list);
 groupsList *createGroup(int gpid,int pid,groupsList *list);
 groupsList *newGroup(int gpid);
@@ -26,3 +25,6 @@ grpMem *newMember(int pid);
 int checkType(char* text,int *gpid);
 groupsList *FindGroup(int gpid,groupsList *list);
 bool checkGroupMember(groupsList *list,int pid);
+void listGroups(int pid,groupsList *list);
+void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf);
+void SendMessage(int msqid,my_msgbuf buf,groupsList *list);

@@ -21,9 +21,13 @@ int main(void){
 	printf("Server Ready\n");
 	
 	while(1){
-		 if(msgrcv(msqid,&(buf),sizeof(buf),0,0)==-1){//get all the messages 
+
+	//	 while(msgrcv(msqid,&(buf),sizeof(buf),1,0)==0);//get all the messages 
+
+		 if(msgrcv(msqid,&(buf),sizeof(buf),1,0)==-1){//get all the messages 
             perror("msgrcv");
         }
+
 		int msg_type = checkType(buf.mtext,&gpid);//check type of message,creategrp/joingrp/etc
 		if(msg_type==1){					
 			list = createGroup(gpid,buf.spid,list);
@@ -31,8 +35,11 @@ int main(void){
 		else if(msg_type==2){
 			list = joinGroup(gpid,buf.spid,list);
 		}
+		else if(msg_type==3){
+			listGroups(buf.spid,list);
+		}
 		else{
-			SendMessageToGroup(buf,gpid,list);		//normal group message
+			SendMessage(msqid,buf,list);		//normal group message
 		}
 			printf("Message by %ld:%s\n",buf.spid,buf.mtext);
 
@@ -82,10 +89,38 @@ groupsList* createGroup(int gpid,int pid,groupsList *list){	//creating a new gro
 }	
 		
 
-void SendMessageToGroup(my_msgbuf buf,int gpid,groupsList *list){ 	//normal message sent to group
+void SendMessage(int msqid,my_msgbuf buf,groupsList *list){ 	//normal message sent to group
+	groupsList *temp = list;
+	while(temp!=NULL){
+		if(checkGroupMember(temp,buf.spid) == true){
+			SendMessageToGroup(msqid,temp,buf);
+		}
+		temp=temp->next;
+	}
+}
+	
+void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf){
+	if(list==NULL)
+		return;
+	grpMem *temp = list->head;
+	while(temp!=NULL){
+		buf.mtype = temp->pid;
+		msgsnd(msqid,&buf,sizeof(buf),0);
+		temp=temp->nextMem;
+	}
 }
 
-
+void listGroups(int pid,groupsList *list){
+	printf("%d belongs to groups:\n",pid);
+	groupsList *temp = list;
+	while(temp!=NULL){
+		if(checkGroupMember(temp,pid) == true){
+			printf("%d\n",temp->gpid);
+		}
+		temp=temp->next;
+	}
+		
+}
 groupsList *joinGroup(int gpid,int pid,groupsList *list){
 	groupsList *grp = FindGroup(gpid,list);
 	if(grp==NULL){
@@ -104,6 +139,8 @@ groupsList *joinGroup(int gpid,int pid,groupsList *list){
 }
 
 bool checkGroupMember(groupsList *list,int pid){
+	if(list==NULL)
+		return false;
 	grpMem *temp = list->head;
 	while(temp!=NULL){
 		if(temp->pid==pid)
@@ -139,5 +176,8 @@ int checkType(char* text,int *gpid){            //returns type of message 1->cre
 		*gpid = atoi(temp);
 		return 2;
 	}
-	return 3;
+	if(strcmp(temp,"list")==0){
+		return 3;
+	}
+	return 4;
 }
