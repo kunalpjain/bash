@@ -16,19 +16,19 @@ int main(void){
 		exit(1);
 	}
 	while(1){
+		printf("You:\n");
 		buf.spid = getpid();//registering sender pid
 		buf.gpid = 1;//for now assuming all group 1,later we will extend
-		buf.mtype = 0;//for sending to server
-		printf("You:");
+		buf.mtype = 1;//for sending to server
+    	fflush(stdin);
+    	fflush(stdout);
 		scanf("%s",buf.mtext);
 		if(msgsnd(msqid,&(buf),sizeof(buf),0)==-1){//send message to server
 			perror("msgsnd");
 		}
-		if(msgrcv(msqid,&(buf),sizeof(buf),getpid(),IPC_NOWAIT)==-1){//display messages in the group
-			perror("msgrcv");
-		}
-		printf("%ld:%s\n",buf.spid,buf.mtext);
+//		if(msgrcv(msqid,&(buf),sizeof(buf),getpid(),IPC_NOWAIT)==-1){//display messages in the group
+//			perror("msgrcv");
+//		}
+//		printf("%ld:%s\n",buf.spid,buf.mtext);
 	}
-	
-	
 }
