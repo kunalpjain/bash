@@ -17,22 +17,22 @@ int main(void){
 		perror("msgget:");
 		exit(1);
 	}
-
+	int gpid;
 	printf("Server Ready\n");
 	
 	while(1){
 		 if(msgrcv(msqid,&(buf),sizeof(buf),0,0)==-1){//get all the messages 
             perror("msgrcv");
         }
-		int msg_type = checkType(buf.mtext);//check type of message,creategrp/joingrp/etc
+		int msg_type = checkType(buf.mtext,&gpid);//check type of message,creategrp/joingrp/etc
 		if(msg_type==1){					
-			list = createGroup(buf,list);
+			list = createGroup(gpid,buf.spid,list);
 		}
 		else if(msg_type==2){
-			list = joinGroup(buf,list);
+			list = joinGroup(gpid,buf.spid,list);
 		}
 		else{
-			SendMessageToGroup(buf,list);		//normal group message
+			SendMessageToGroup(buf,gpid,list);		//normal group message
 		}
 			printf("Message by %ld:%s\n",buf.spid,buf.mtext);
 
@@ -50,21 +50,22 @@ grpMem *newMember(int pid){			//new GrpMem structure
 groupsList *newGroup(int gpid){		//new groupsList structure
 		groupsList *newG = (groupsList*)malloc(sizeof(groupsList));
 		newG->gpid=gpid;
-		newG->member=NULL;
+		newG->head=NULL;
 		newG->next= NULL;
 		return newG;
 }
 	
 
-groupsList* createGroup(my_msgbuf buf,groupsList *list){	//creating a new group
-	if(checkGroupExists(buf.gpid,list)==true){
+groupsList* createGroup(int gpid,int pid,groupsList *list){	//creating a new group
+	groupsList *grp = FindGroup(gpid,list); 	//get group if it already exists
+	if(grp!=NULL){
 		printf("group already exists\n");
 		return list;
 	}
-	grpMem *newM=newMember(buf.spid);
+	grpMem *newM=newMember(pid);
 	if(list==NULL){
-		list = newGroup(buf.gpid);
-		list->member=newM;
+		list = newGroup(gpid);
+		list->head=newM;
 	}
 	else{
 		groupsList *prevG=list;
@@ -73,29 +74,70 @@ groupsList* createGroup(my_msgbuf buf,groupsList *list){	//creating a new group
 			prevG=nextG;
 			nextG=nextG->next;
 		}
-		prevG->next = newGroup(buf.gpid);
-		prevG->next->member=newM;
+		prevG->next = newGroup(gpid);
+		prevG->next->head=newM;
 	}
-	printf("group %ld created\n",buf.gpid);
+	printf("group %d created\n",gpid);
 	return list;
 }	
 		
-void SendMessageToGroup(my_msgbuf buf,groupsList *list){ 	//normal message sent to group
+
+void SendMessageToGroup(my_msgbuf buf,int gpid,groupsList *list){ 	//normal message sent to group
 }
-groupsList *joinGroup(my_msgbuf buf,groupsList *list){return list;}
 
 
+groupsList *joinGroup(int gpid,int pid,groupsList *list){
+	groupsList *grp = FindGroup(gpid,list);
+	if(grp==NULL){
+		printf("Group :%d doesnt exist,first create\n",gpid);
+		return list;
+	}
+	if(checkGroupMember(grp,pid) == true){
+		printf("Already a member\n");
+		return list;
+	}
+	grpMem * newM = newMember(pid);
+	newM->nextMem = grp->head;
+	grp->head=newM;
+	printf("%d joined group %d\n",pid,gpid);
+	return list;
+}
 
-bool checkGroupExists(int gpid,groupsList *list){ 	//returns true if group already exists
+bool checkGroupMember(groupsList *list,int pid){
+	grpMem *temp = list->head;
+	while(temp!=NULL){
+		if(temp->pid==pid)
+			return true;
+		temp=temp->nextMem;
+	}
+	return false;
+}
+		
+groupsList *FindGroup(int gpid,groupsList *list){ 	//returns groupList pointer if group already exists
 	groupsList *temp=list;
 	while(temp!=NULL){
 		if(temp->gpid==gpid)
-			return true;
+			return temp;
 		temp=temp->next;
 	}
-	return false;
-
+	return NULL;
 }
 
 
-int checkType(char* text){return 1;} 		//returns type of message 1->create,2->join etc
+int checkType(char* text,int *gpid){            //returns type of message 1->create,2->join etc
+	char *temp = (char*)malloc(200);
+	strcpy(temp,text);
+	const char *delim = " ";
+	temp = strtok(temp,delim);
+	if(strcmp(temp,"create")==0){
+		temp=strtok(NULL,delim);
+		*gpid = atoi(temp);
+		return 1;
+	}
+	if(strcmp(temp,"join")==0){
+		temp=strtok(NULL,delim);
+		*gpid = atoi(temp);
+		return 2;
+	}
+	return 3;
+}

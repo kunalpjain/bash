@@ -22,7 +22,8 @@ int main(void){
 		buf.mtype = 1;//for sending to server
     	fflush(stdin);
     	fflush(stdout);
-		scanf("%s",buf.mtext);
+		read (0, buf.mtext,200);
+		printf("%s\n",buf.mtext);
 		if(msgsnd(msqid,&(buf),sizeof(buf),0)==-1){//send message to server
 			perror("msgsnd");
 		}

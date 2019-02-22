@@ -14,14 +14,15 @@ typedef struct grpMem{              //list of all pids in this group
 typedef struct groupsList{          //list of all groups
     int gpid;
     struct groupsList *next;		// next group
-    grpMem *member;					//this gpid members list
+    grpMem *head;					//this gpid members list
 }groupsList;
 
 
-void SendMessageToGroup(my_msgbuf buf,groupsList *list);
-groupsList *joinGroup(my_msgbuf,groupsList *list);
-groupsList *createGroup(my_msgbuf buf,groupsList *list);
+void SendMessageToGroup(my_msgbuf buf,int gpid,groupsList *list);
+groupsList *joinGroup(int gpid,int pid,groupsList *list);
+groupsList *createGroup(int gpid,int pid,groupsList *list);
 groupsList *newGroup(int gpid);
 grpMem *newMember(int pid);
-bool checkGroupExists(int gpid,groupsList *list);
-int checkType(char* text);
+int checkType(char* text,int *gpid);
+groupsList *FindGroup(int gpid,groupsList *list);
+bool checkGroupMember(groupsList *list,int pid);
