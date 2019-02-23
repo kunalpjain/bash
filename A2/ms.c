@@ -46,7 +46,7 @@ int main(void){
 		}
 }
 	
-
+ 
 grpMem *newMember(int pid){			//new GrpMem structure
 	grpMem *newM = (grpMem*)malloc(sizeof(grpMem));
 	newM->pid=pid;
