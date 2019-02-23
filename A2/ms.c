@@ -27,7 +27,6 @@ int main(void){
 		 if(msgrcv(msqid,&(buf),sizeof(buf),1,0)==-1){//get all the messages 
             perror("msgrcv");
         }
-
 		int msg_type = checkType(buf.mtext,&gpid);//check type of message,creategrp/joingrp/etc
 		if(msg_type==1){					
 			list = createGroup(gpid,buf.spid,list);
@@ -116,6 +115,19 @@ void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf){
 	}
 }
 
+int no_tokens(char *text){
+	char *str=(char*)malloc(MSG_SIZE);
+	strcpy(str,text);
+	char *delim=" ";
+	str=strtok(str,delim);
+	int count=0;
+	while(str!=NULL){
+			str=strtok(NULL,delim);
+			count++;
+	}
+	return count;
+}
+
 /*
 void listGroups(int msqid,my_msgbuf buf,groupsList *list){
 	printf("%ld belongs to groups:\n",buf.spid);
@@ -139,18 +151,18 @@ void listGroups(int msqid,my_msgbuf buf,groupsList *list){
 */
 
 void listGroups(int msqid,my_msgbuf buf,groupsList *list){
-	char *str ="Avalable groups:";
+	char *str = (char*)malloc(2000);
+	strcpy(str,"Avalable groups:\n");
 	groupsList *temp = list;
-	char str2[20000];
-	buf.mtype = buf.spid;
+	char str2[2000];
 	while(temp!=NULL){
-			sprintf(str2,"%d",temp->gpid);
-			str = strcat(str,str2);
-			//str = strcat(str,"\t");
-			//printf("%d\n",temp->gpid);
-		temp=temp->next;
+			sprintf(str2,"%d\t",temp->gpid);
+			strcat(str,str2);
+			temp=temp->next;
 	}
+	buf.mtype = buf.spid;
 	strcpy(buf.mtext,str);
+	kill(buf.spid,SIGUSR1);
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
@@ -195,21 +207,26 @@ groupsList *FindGroup(int gpid,groupsList *list){ 	//returns groupList pointer i
 
 
 int checkType(char* text,int *gpid){            //returns type of message 1->create,2->join etc
+	int no_token = no_tokens(text);
 	char *temp = (char*)malloc(MSG_SIZE);
+	if(text[strlen(text)-1] =='\n')
+		text[strlen(text)-1]=0;
 	strcpy(temp,text);
 	const char *delim = " ";
 	temp = strtok(temp,delim);
-	if(strcmp(temp,"create")==0){
+	if(temp==NULL)
+		return 4;
+	if(no_token == 2 &&strcmp(temp,"create")==0){
 		temp=strtok(NULL,delim);
 		*gpid = atoi(temp);
 		return 1;
 	}
-	if(strcmp(temp,"join")==0){
+	if(no_token==2 && strcmp(temp,"join")==0){
 		temp=strtok(NULL,delim);
 		*gpid = atoi(temp);
 		return 2;
 	}
-	if(strcmp(temp,"list")==0){
+	if(no_token ==1  && strcmp(temp,"list")==0){
 		return 3;
 	}
 	return 4;

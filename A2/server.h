@@ -28,3 +28,4 @@ bool checkGroupMember(groupsList *list,int pid);
 void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf);
 void SendMessage(int msqid,my_msgbuf buf,groupsList *list);
 void listGroups(int msqid,my_msgbuf buf,groupsList *list);
+int no_tokens(char *text);

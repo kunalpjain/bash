@@ -2,6 +2,7 @@
 #include "server.h"
 int msqid;
 void handler (int signo){
+
 	struct my_msgbuf buf;
 	if(msgrcv(msqid,&(buf),sizeof(buf),getpid(),0)==-1){//display messages in the group
 		//perror("msgrcv");

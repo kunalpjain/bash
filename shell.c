@@ -32,7 +32,7 @@ int main (void)
 	    	if(command==NULL){//if ENTER
 	       		continue; 
 	    	}
-			if(strcmp(path,"exit") == 0) {   //ability to exit from shell
+			if(strcmp(command,"exit") == 0) {   //ability to exit from shell
 	    		printf("Exiting prompt\n");
 	    		exit(0);      
     		}
