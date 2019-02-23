@@ -315,7 +315,7 @@ void doublePipe(char *path1,char **argv,int nofargs){
 		}
 	}
 }
-
+/*
 void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 
 	int countofpipe=0;
@@ -362,6 +362,7 @@ void pipesign(char *completepath,char *path,char **argv,int nofargs) {
 	exit(0);
 
 }
+*/
 
 void TriplePipe(char *path1,char **argv,int nofargs){
 	extern char **environ;
