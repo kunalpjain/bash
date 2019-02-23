@@ -25,6 +25,6 @@ grpMem *newMember(int pid);
 int checkType(char* text,int *gpid);
 groupsList *FindGroup(int gpid,groupsList *list);
 bool checkGroupMember(groupsList *list,int pid);
-void listGroups(int pid,groupsList *list);
 void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf);
 void SendMessage(int msqid,my_msgbuf buf,groupsList *list);
+void listGroups(int msqid,my_msgbuf buf,groupsList *list);

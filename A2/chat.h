@@ -6,11 +6,13 @@
 #include<unistd.h>
 #include<string.h>
 #include<stdbool.h>
+#include<signal.h>
 
 #define MSGQ_PATH "chat.h"
+#define MSG_SIZE 2000
 
 typedef struct my_msgbuf{
 	long mtype;		//1->normal msg,2->create grp,3->join group
-	char mtext[2000];
+	char mtext[MSG_SIZE];
 	long spid;//sender pid
 }my_msgbuf;

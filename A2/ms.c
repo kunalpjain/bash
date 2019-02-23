@@ -36,12 +36,12 @@ int main(void){
 			list = joinGroup(gpid,buf.spid,list);
 		}
 		else if(msg_type==3){
-			listGroups(buf.spid,list);
+			listGroups(msqid,buf,list);
 		}
 		else{
 			SendMessage(msqid,buf,list);		//normal group message
 		}
-			printf("Message by %ld:%s\n",buf.spid,buf.mtext);
+			//printf("Message by %ld:%s\n",buf.spid,buf.mtext);
 
 		}
 }
@@ -103,24 +103,57 @@ void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf){
 	if(list==NULL)
 		return;
 	grpMem *temp = list->head;
+	printf("Sending msg by %ld to group %d\n",buf.spid,list->gpid);
 	while(temp!=NULL){
+		if(temp->pid==buf.spid){
+			temp=temp->nextMem;
+			continue;
+		}
+		kill(temp->pid,SIGUSR1);
 		buf.mtype = temp->pid;
 		msgsnd(msqid,&buf,sizeof(buf),0);
 		temp=temp->nextMem;
 	}
 }
 
-void listGroups(int pid,groupsList *list){
-	printf("%d belongs to groups:\n",pid);
+/*
+void listGroups(int msqid,my_msgbuf buf,groupsList *list){
+	printf("%ld belongs to groups:\n",buf.spid);
 	groupsList *temp = list;
+	buf.mtype = buf.spid;
+	char *str = "";
+	char str2[100];
 	while(temp!=NULL){
-		if(checkGroupMember(temp,pid) == true){
-			printf("%d\n",temp->gpid);
+		if(checkGroupMember(temp,buf.spid) == true){
+			sprintf(str2, "%ld",buf.spid);
+			str = strcat(str,str2);
+			str = strcat(str," ");
+			//printf("%d\n",temp->gpid);
 		}
 		temp=temp->next;
 	}
+	strcpy(buf.mtext,str);
+	msgsnd(msqid,&buf,sizeof(buf),0);
 		
 }
+*/
+
+void listGroups(int msqid,my_msgbuf buf,groupsList *list){
+	char *str ="Avalable groups:";
+	groupsList *temp = list;
+	char str2[20000];
+	buf.mtype = buf.spid;
+	while(temp!=NULL){
+			sprintf(str2,"%d",temp->gpid);
+			str = strcat(str,str2);
+			//str = strcat(str,"\t");
+			//printf("%d\n",temp->gpid);
+		temp=temp->next;
+	}
+	strcpy(buf.mtext,str);
+	msgsnd(msqid,&buf,sizeof(buf),0);
+}
+
 groupsList *joinGroup(int gpid,int pid,groupsList *list){
 	groupsList *grp = FindGroup(gpid,list);
 	if(grp==NULL){
@@ -162,7 +195,7 @@ groupsList *FindGroup(int gpid,groupsList *list){ 	//returns groupList pointer i
 
 
 int checkType(char* text,int *gpid){            //returns type of message 1->create,2->join etc
-	char *temp = (char*)malloc(200);
+	char *temp = (char*)malloc(MSG_SIZE);
 	strcpy(temp,text);
 	const char *delim = " ";
 	temp = strtok(temp,delim);
