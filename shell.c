@@ -28,13 +28,14 @@ int main (void)
                		buf[i] = '\0';
 			int nofargs=0;
 			char *command = getcommand(buf,&nofargs); //nofargs updated too
-			if(command==NULL){//if ENTER
-	       			continue; 
-			}
-			if(strcmp(path,"exit") == 0) {   //ability to exit from shell
-	    			printf("Exiting prompt\n");
-		    		exit(0);      
-    			}
+	    	if(command==NULL){//if ENTER
+	       		continue; 
+	    	}
+			if(strcmp(command,"exit") == 0) {   //ability to exit from shell
+	    		printf("Exiting prompt\n");
+	    		exit(0);      
+    		}
+
 			char *p = getfile(path,command);
 			bool back_pr = false;
 		   	char **v = getargv(buf,&nofargs,&back_pr);
