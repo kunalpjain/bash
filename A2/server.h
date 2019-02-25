@@ -6,26 +6,15 @@
 #include<unistd.h>
 #include<string.h>
 
-typedef struct grpMem{              //list of all pids in this group
-    int pid;
-    struct grpMem *nextMem;			//next member of the list
-}grpMem;
-
-typedef struct groupsList{          //list of all groups
-    int gpid;
-    struct groupsList *next;		// next group
-    grpMem *head;					//this gpid members list
-}groupsList;
+#define MAX_CLIENTS 100
+#define MAX_GROUPS 15
 
 
-groupsList *joinGroup(int gpid,int pid,groupsList *list);
-groupsList *createGroup(int gpid,int pid,groupsList *list);
-groupsList *newGroup(int gpid);
-grpMem *newMember(int pid);
-int checkType(char* text,int *gpid);
-groupsList *FindGroup(int gpid,groupsList *list);
-bool checkGroupMember(groupsList *list,int pid);
-void SendMessageToGroup(int msqid,groupsList *list,my_msgbuf buf);
-void SendMessage(int msqid,my_msgbuf buf,groupsList *list);
-void listGroups(int msqid,my_msgbuf buf,groupsList *list);
-int no_tokens(char *text);
+void joinGroup(long pid,my_msgbuf buf,long **groups,long **clients);
+bool checkMem(int pos,long **array,long key);
+void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups);
+void listGroup(long pid,int msqid,my_msgbuf buf,long **clients);
+void SendMessage(int msqid,my_msgbuf buf,long **groups);
+int getPos(long key,long **array,int max);
+void createGroup(long gpid,long pid,long **groups,long **clients);
+
