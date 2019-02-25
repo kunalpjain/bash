@@ -8,25 +8,45 @@ void handler(int signo) {
 	printf("\nEnter your desired command: ");
 	fflush(stdout);
 	scanf("%d",&index);
-	char command[100];
+	/*char command[100];
 	int i;
-	while(fscanf(fp,"%d:%s\n",&i,command)>0){
+	while(fscanf(fp,"%d %s\n",&i,command)>0){
 		if(i==index)
 			break;
 	}
 	
 	printf("command[%d]:%s\n",index,command);
-	fclose(fp);
+	fclose(fp);*/
+	char *command = indexInFile(fp,index);
 	char *firstarg = getcommand(command,&nofargs);
 	char *pathofcommand = getfile(completepath,firstarg);
 	char **argv = getargv(command,&nofargs,&var);
-	if(fork()==0)
+	int ret,status;
+	if((ret=fork())==0)
 		parsecommand(completepath, pathofcommand, argv, nofargs);
 	else {
-		wait(NULL);
+		waitpid(ret, &status, 0);
 		fflush(stdout);
 		fflush(stdin);
+		return;
 	}
+}
+
+void createEmptyFile(char *filename) {
+	FILE *fp = fopen(filename, "w");
+	for(int i=0;i<MAX_SIZE;i++) {
+		write(fileno(fp), "empty\n", 7);
+	}
+	fclose(fp);
+}
+
+char * indexInFile(FILE *fp, int index) {
+	char *buf = (char *)malloc(sizeof(char)*MAX_SIZE);
+	fseek(fp,0,SEEK_SET);
+	for(int i=0;i<index;i++) {
+		fscanf(fp,"%s",buf);
+	}
+	return buf;
 }
 
 char *getcommand(char *buf,int *noofargs){//gets the first command and updates no of args
@@ -474,20 +494,25 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 }
 void customcommands(char **argv,int nofargs) {
 	if(strcmp(argv[1],"-i")==0) {
-		printf("adding\n");
 		int index = atoi(argv[2]);
-		printf("index%d\n",index);
+		replaceInFile("lookup.txt", index, subarray(argv, 3, nofargs-1), nofargs-3);
 		FILE *fp = fopen("lookup.txt","a");
-		fprintf(fp,"%d:%s\n",index,argv[3]);
+		int fd = fileno(fp);
+		char buf[strlen(argv[3])+1];
+		strcpy(buf, argv[3]);
+		buf[strlen(argv[3])] = '\n';
+		write(fd, buf, sizeof(buf));
 		fclose(fp);
-		return;
+		exit(0);
 	}
 	if(strcmp(argv[1],"-d")==0){
 		//FILE *fp = fopen("lookup.txt","r+");
 		//fseek(fp,0,SEEK_SET);
 		//while(fscanf(fp,"%d:%s\n",&i,command)>0){
+		printf("adding\n");
 		//	if(i==index){
 		//		break;
 		}
 		//strcpy(lookuptable[(int)atoi(argv[2])],"empty");
 }
+

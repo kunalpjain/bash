@@ -11,3 +11,4 @@ shell.o:	shell.c functions.h
 
 clean:
 	rm *.o
+

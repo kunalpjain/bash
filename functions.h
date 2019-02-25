@@ -11,6 +11,9 @@
 
 void handler(int signo);
 bool check (char *filepath);
+void createEmptyFile(char *filename);
+void replaceInFile(char *filename, int index, char **argv, int nofargs);
+char *indexInFile(FILE *fp, int index);
 char *getfile(char *path,char *firstarg);
 char **getargv(char *buff,int *nofargs,bool *back_pr);
 char *getcommand(char *buf,int *noofargs);

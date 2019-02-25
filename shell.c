@@ -11,24 +11,23 @@ int main (void)
 	sigaction(SIGINT, &act, NULL);
 */
 	remove("lookup.txt");
+	createEmptyFile("lookup.txt");
 	signal(SIGINT,&handler);
 	extern char **environ;
 	char *path = getenv ("PATH");
 	char buf[MAX_SIZE];
-	while(1){
+	for(;;){
 
 		fflush (stdout);
 		printf ("prompt> ");
 		fflush (stdout);
 
 		if (read (0, buf, MAX_SIZE) > 0){
-
 			for (int i = 0; i < MAX_SIZE; i++)
             			if(buf[i] == '\n')
                		buf[i] = '\0';
 			int nofargs=0;
 			char *command = getcommand(buf,&nofargs); //nofargs updated too
-	    	
 	    	if(command==NULL){//if ENTER
 	       		continue; 
 	    	}
@@ -36,7 +35,7 @@ int main (void)
 	    		printf("Exiting prompt\n");
 	    		exit(0);      
     		}
-			
+
 			char *p = getfile(path,command);
 			bool back_pr = false;
 		   	char **v = getargv(buf,&nofargs,&back_pr);
@@ -46,10 +45,10 @@ int main (void)
 			
 			if (ret == 0){
 
-				if (p == NULL && strcmp(v[0],"sc")==0) {
+				if (p == NULL && strcmp(v[0],"sc")!=0) {
 					printf("args:%d\n",nofargs);
 					customcommands(v,nofargs);
-					//printf ("Command %s not found\n", buf);
+					printf ("Command %s not found\n", buf);
 					exit (0);
 				}
 
@@ -70,4 +69,5 @@ int main (void)
 		}	
 	}
 }
+
 
