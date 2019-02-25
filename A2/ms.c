@@ -2,7 +2,7 @@
 #include "server.h"
 
 int main(void){
-
+	
 	groupsList *list = NULL;
 	struct my_msgbuf buf;
 	int msqid;
