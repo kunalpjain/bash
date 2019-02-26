@@ -8,7 +8,7 @@ int main(void){
 	key_t key;
 
 	//creating data structures for clients and groups
-
+/*
 	long **clients = (long**)malloc(sizeof(long*)*MAX_CLIENTS);
 	for(int i=0;i<MAX_CLIENTS;i++)
 		clients[i]=(long*)malloc(sizeof(long)*MAX_CLIENTS);
@@ -16,6 +16,9 @@ int main(void){
 	long **groups = (long**)malloc(sizeof(long*)*MAX_GROUPS);
 	for(int i=0;i<MAX_CLIENTS;i++)
 		groups[i]=(long*)malloc(sizeof(long)*MAX_GROUPS);
+*/
+	long clients[MAX_CLIENTS][MAX_CLIENTS];
+	long groups[MAX_GROUPS][MAX_GROUPS];
 
 	//initializing clients and groups to 0
 
@@ -32,10 +35,11 @@ int main(void){
 		exit(1);
 	}
 	printf("Server Ready\n");
-	long pid = ntoid(buf.uname);// id of the client
+	long pid;
 	while(1){
 
    	 	msgrcv(msqid,&(buf),sizeof(buf),1,0);//get all the messages 
+		pid = ntoid(buf.uname);// id of the client
 		if(buf.option==1){				// user is online
 			 printf("%s",buf.mtext);
 		}
@@ -45,7 +49,8 @@ int main(void){
 		}
 		else if(buf.option==3){				//create group
 			pid = ntoid(buf.uname);
-			createGroup(buf.gpid,pid,groups,groups);
+			printf("%ld\n",buf.gpid);
+			createGroup(buf.gpid,pid,groups,clients);
 			 printf("%s",buf.mtext);
 		}
 		else if(buf.option==4){				//join group
@@ -54,11 +59,11 @@ int main(void){
 		}
 		else if(buf.option==5){				//list specific groups
 			printf("%s",buf.mtext);
-			listGroup(pid,msqid,buf,groups);
+			listGroup(pid,msqid,buf,clients);
 		}
 		else{
 			if(buf.gpid==0){			//send message to all groups
-				int cli = getPos(pid,clients,MAX_CLIENTS);
+				int cli = getPosClient(pid,clients,MAX_CLIENTS);
 				int nos = clients[cli][1];
 				for(int i=0;i<nos;i++){
 					buf.gpid = clients[cli][i+2];
@@ -71,8 +76,8 @@ int main(void){
 	}
 }
 	
-void createGroup(long gpid,long pid,long **groups,long **clients){	//creating a new group
-	if(getPos(gpid,groups,MAX_GROUPS) == -1){			//if group already exists,return
+void createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
+	if(getPosGroup(gpid,groups,MAX_GROUPS) == -1){			//if group already exists,return
 			printf("group already exists\n");
 			return;
 	}
@@ -96,7 +101,7 @@ void createGroup(long gpid,long pid,long **groups,long **clients){	//creating a 
 	clients[i][2]=gpid;
 }	
 		
-int getPos(long key,long **array,int max){			//returns pos of key in given array[pos][0]
+int getPosClient(long key,long array[MAX_CLIENTS][MAX_CLIENTS],int max){//returns pos of key in given array[pos][0]
 	int i=0;
 	while(i<max && array[i][0]!=0){
 		if(array[i][0]==key){
@@ -107,8 +112,20 @@ int getPos(long key,long **array,int max){			//returns pos of key in given array
 	return -1;						//-1 if not found
 }
 
-void SendMessage(long pid,int msqid,my_msgbuf buf,long **groups){ 	//normal message sent to group
-	int grp = getPos(buf.gpid,groups,MAX_GROUPS);			
+
+int getPosGroup(long key,long array[MAX_GROUPS][MAX_GROUPS],int max){//returns pos of key in given array[pos][0]
+	int i=0;
+	while(i<max && array[i][0]!=0){
+		if(array[i][0]==key){
+			return i;
+		}
+		i++;
+	}
+	return -1;						//-1 if not found
+}
+
+void SendMessage(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS]){ 	//normal message sent to group
+	int grp = getPosGroup(buf.gpid,groups,MAX_GROUPS);			
 	if(groups[grp][1]==-1){
 		printf("Group not present\n");
 		return ;
@@ -137,8 +154,8 @@ int no_tokens(char *text){
 
 */
 
-void listGroup(long pid,int msqid,my_msgbuf buf,long **clients){
-	int cli = getPos(pid,clients,MAX_CLIENTS);
+void listGroup(long pid,int msqid,my_msgbuf buf,long clients[MAX_CLIENTS][MAX_CLIENTS]){
+	int cli = getPosClient(pid,clients,MAX_CLIENTS);
 	int i=0;
 	char *str = "";
 	char str2[200];
@@ -153,7 +170,7 @@ void listGroup(long pid,int msqid,my_msgbuf buf,long **clients){
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
-void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups){
+void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS]){
 	int i=0;
 	char *str = "";
 	char str2[200];
@@ -161,13 +178,15 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups){
 			sprintf(str2, "%ld\n",groups[i][0]);
 			str = strcat(str,str2);
 			i++;
-		}
+	}
+	if(i==0)		//no groups available
+		return;
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
-bool checkMem(int pos,long **array,long key){
+bool checkMem(int pos,long array[MAX_GROUPS][MAX_GROUPS],long key){
 	int nos = array[pos][1];
 	for(int i=0;i<nos;i++){
 		if(array[pos][i+2]==key){
@@ -178,9 +197,9 @@ bool checkMem(int pos,long **array,long key){
 }
 
 
-void joinGroup(long pid,my_msgbuf buf,long **groups,long **clients){
-	int grp = getPos(buf.gpid,groups,MAX_GROUPS);
-	int cli = getPos(pid,clients,MAX_CLIENTS);
+void joinGroup(long pid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
+	int grp = getPosGroup(buf.gpid,groups,MAX_GROUPS);
+	int cli = getPosClient(pid,clients,MAX_CLIENTS);
 	if(checkMem(grp,groups,pid) == true){
 		printf("Already a member\n");
 		return;

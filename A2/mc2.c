@@ -94,6 +94,7 @@ int main() {
 					buf.option = 4;
 					gid = atoi(command+2);
 					buf.gpid = gid;
+					printf("gpid:%ld\n",buf.gpid);
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
 					break;
 			}
