@@ -49,15 +49,15 @@ int main(void){
 		}
 		else if(buf.option==3){				//create group
 			pid = ntoid(buf.uname);
-			printf("%ld\n",buf.gpid);
+			printf("%s",buf.mtext);
 			createGroup(buf.gpid,pid,groups,clients);
-			 printf("%s",buf.mtext);
 		}
 		else if(buf.option==4){				//join group
 			 joinGroup(pid,buf,groups,clients);
 			 printf("%s",buf.mtext);
 		}
 		else if(buf.option==5){				//list specific groups
+			printf("option 5\n");
 			printf("%s",buf.mtext);
 			listGroup(pid,msqid,buf,clients);
 		}
@@ -77,7 +77,7 @@ int main(void){
 }
 	
 void createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
-	if(getPosGroup(gpid,groups,MAX_GROUPS) == -1){			//if group already exists,return
+	if(getPosGroup(gpid,groups,MAX_GROUPS) != -1){			//if group already exists,return
 			printf("group already exists\n");
 			return;
 	}
@@ -157,26 +157,27 @@ int no_tokens(char *text){
 void listGroup(long pid,int msqid,my_msgbuf buf,long clients[MAX_CLIENTS][MAX_CLIENTS]){
 	int cli = getPosClient(pid,clients,MAX_CLIENTS);
 	int i=0;
-	char *str = "";
+	char str[200]="";
 	char str2[200];
 	int nos = clients[cli][1];
 	for(int i=0;i<nos;i++){
-		pid = clients[cli][i+2];
 		sprintf(str2, "%ld\n",clients[cli][i+2]);
-		str = strcat(str,str2);
+		strcat(str,str2);
 	}	
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
+	printf("sent\n");
 	msgsnd(msqid,&buf,sizeof(buf),0);
+	printf("sent\n");
 }
 
 void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS]){
 	int i=0;
-	char *str = "";
+	char str[200] = "";
 	char str2[200];
 	while(i<MAX_GROUPS && groups[i][0]!=0){
 			sprintf(str2, "%ld\n",groups[i][0]);
-			str = strcat(str,str2);
+			strcat(str,str2);
 			i++;
 	}
 	if(i==0)		//no groups available

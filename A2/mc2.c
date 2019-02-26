@@ -50,18 +50,20 @@ int main() {
 	else {
 		for(;;) {
 			char command[MSG_SIZE], backup[MSG_SIZE];
-			getchar();
-			scanf("%[^\n]s", command);
+			//getchar();
+			scanf(" %[^\n]", command);
 			strcpy(backup, command);
 			if(strlen(strtok(backup, " ")) > 1) {
 				read(p[0], &charbuf, sizeof(charbuf));
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
+
 				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {
 					buf.mtype = my_id;
 					msgsnd(msqid, &buf, sizeof(buf), 0);
 				}
+
 				printf("You are in the following groups:\n%s", buf.mtext);
 				printf("Enter the group number to send to (or empty for all): ");
 				fflush(stdout);
@@ -88,13 +90,11 @@ int main() {
 					gid = atoi(command+2);
 					buf.gpid = gid;
 					sprintf(buf.mtext, "User %s attempting to create group %ld\n", uname, gid);
-					printf("gpid = %ld ", buf.gpid);
 					break;
 				case 'j':
 					buf.option = 4;
 					gid = atoi(command+2);
 					buf.gpid = gid;
-					printf("gpid:%ld\n",buf.gpid);
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
 					break;
 			}
