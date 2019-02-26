@@ -6,8 +6,13 @@ int main(void){
 	struct my_msgbuf buf;
 	int msqid;
 	key_t key;
-	long clients[MAX_CLIENTS][MAX_CLIENTS];
-	long groups[MAX_GROUPS][MAX_GROUPS];
+	long **clients = (long**)malloc(sizeof(long*)*MAX_CLIENTS);
+	for(int i=0;i<MAX_CLIENTS;i++){
+		clients[i]=(long*)malloc(sizeof(long)*MAX_CLIENTS);
+
+	long **groups = (long**)malloc(sizeof(long*)*MAX_GROUPS);
+	for(int i=0;i<MAX_CLIENTS;i++){
+		groups[i]=(long*)malloc(sizeof(long)*MAX_GROUPS);
 
 	memset(clients,0,sizeof(long)*MAX_CLIENTS*MAX_CLIENTS);
 	memset(groups,0,sizeof(long)*MAX_GROUPS*MAX_GROUPS);
