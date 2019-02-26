@@ -1,4 +1,5 @@
 #include "chat.h"
+#include<ctype.h>
 
 long ntoid(char *name) {
 	long id = 0;
