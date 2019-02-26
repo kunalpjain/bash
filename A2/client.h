@@ -7,4 +7,4 @@
 #include<string.h>
 #include<stdbool.h>
 
-
+void printOptions(int extra);

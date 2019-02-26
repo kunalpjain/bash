@@ -5,7 +5,7 @@
 int main() {
 	struct my_msgbuf buf;
 	key_t key;
-	int p[2];
+	int p[2], msqid;
 	char uname[20], charbuf='a';
 	pipe(p);
 	write(p[1], &charbuf, sizeof(charbuf));
@@ -29,10 +29,12 @@ int main() {
 	strcpy(buf.uname, uname);
 	msgsnd(msqid, &buf, sizeof(buf), 0);
 
-	printf("Welcome %s, retrieving you messages...\n");
+	printf("Welcome %s, retrieving you messages...\n", uname);
 	long my_id = ntoid(uname);
-	while(msgrcv(msqid, &buf, sizeof(buf), my_id, IPC_NOWAIT)) {
-		printf("Msg ->\t%s\n", buf.mtext);
+	strcpy(buf.mtext, "\0");
+	int kk;
+	while(kk=msgrcv(msqid, &buf, sizeof(buf), my_id, 0)) {
+		printf("Msg->\t%s %d\n", buf.mtext, kk);
 	}
 	
 	printOptions(1);	
@@ -43,6 +45,7 @@ int main() {
 			read(p[0], &charbuf, sizeof(charbuf));
 			printf("\nMsg -> %s\n", buf.mtext);
 			write(p[1], &charbuf, sizeof(charbuf));
+			printOptions(1);
 		}
 	}
 	else {
@@ -55,18 +58,26 @@ int main() {
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
-				msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
+				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {
+					buf.mtype = my_id;
+					msgsnd(msqid, &buf, sizeof(buf), 0);
+				}
 				printf("You are in the following groups:\n%s", buf.mtext);
 				printf("Enter the group number to send to (or empty for all): ");
 				fflush(stdout);
-				gets(command);
-				if(strlen(command) == 0) {
-					strcpy(backup, buf.mtext);
-					for(;;) {
-						
-					}
-				}
+				char groupnumber[NAME_SIZE];
+				gets(groupnumber);
+				if(strlen(groupnumber) == 0)
+					buf.gpid = 0;
+				else
+					buf.gpid = atoi(groupnumber);
+				buf.option = 6;										// send message
+				strcpy(buf.mtext, command);
+				msgsnd(msqid, &buf, sizeof(buf), 0);
+				write(p[1], &charbuf, sizeof(charbuf));
+				continue;
 			}
+			long gid;
 			switch(command[0]) {
 				case 'l':
 					buf.option = 2;									// list all groups
@@ -74,10 +85,20 @@ int main() {
 					break;
 				case 'c':
 					buf.option = 3;									// create group
-					long gid = atoi(command+2);
-					buf.g2id = gid;
+					gid = atoi(command+2);
+					buf.gpid = gid;
 					sprintf(buf.mtext, "User %s attempting to create group %ld\n", uname, gid);
+					break;
+				case 'j':
+					buf.option = 4;
+					gid = atoi(command+2);
+					buf.gpid = gid;
+					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
+					break;
 			}
+			msgsnd(msqid, &buf, sizeof(buf), 0);
+			printf("-> ");
+			fflush(stdout);
 		}
 	}
 	
