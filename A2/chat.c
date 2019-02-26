@@ -7,6 +7,7 @@ long ntoid(char *name) {
 			id += (long) (name[0] - 'A') + 26;
 		else
 			id += (long) (name[0] - 'a');
+		id*=52;
 	}
 	return id;
 }

@@ -32,27 +32,29 @@ int main(void){
 		exit(1);
 	}
 	printf("Server Ready\n");
-	long pid = ntoid(buf.uname);// id of the client
+	long pid;
 	while(1){
 
    	 	msgrcv(msqid,&(buf),sizeof(buf),1,0);//get all the messages 
+		pid = ntoid(buf.uname);// id of the client
 		if(buf.option==1){				// user is online
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==2){				//list all groups
-			printf("%s",buf.mtext);
+		else if(buf.option==2){				//list all groups
+			printf("%s\n",buf.mtext);
 			listAllGroups(pid,msqid,buf,groups);
 		}
-		if(buf.option==3){				//create group
+		else if(buf.option==3){				//create group
 			pid = ntoid(buf.uname);
+			printf("%ld\n",buf.gpid);
 			createGroup(buf.gpid,pid,groups,groups);
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==4){				//join group
+		else if(buf.option==4){				//join group
 			 joinGroup(pid,buf,groups,clients);
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==5){				//list specific groups
+		else if(buf.option==5){				//list specific groups
 			printf("%s",buf.mtext);
 			listGroup(pid,msqid,buf,groups);
 		}
@@ -154,7 +156,6 @@ void listGroup(long pid,int msqid,my_msgbuf buf,long **clients){
 }
 
 void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups){
-	int grp = getPos(buf.gpid,groups,MAX_GROUPS);
 	int i=0;
 	char *str = "";
 	char str2[200];
@@ -162,7 +163,9 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups){
 			sprintf(str2, "%ld\n",groups[i][0]);
 			str = strcat(str,str2);
 			i++;
-		}
+	}
+	if(i==0)		//no groups available
+		return;
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
 	msgsnd(msqid,&buf,sizeof(buf),0);

@@ -32,9 +32,8 @@ int main() {
 	printf("Welcome %s, retrieving you messages...\n", uname);
 	long my_id = ntoid(uname);
 	strcpy(buf.mtext, "\0");
-	int kk;
-	while(kk=msgrcv(msqid, &buf, sizeof(buf), my_id, 0)) {
-		printf("Msg->\t%s %d\n", buf.mtext, kk);
+	while(msgrcv(msqid, &buf, sizeof(buf), my_id,IPC_NOWAIT)!=-1) {
+		printf("Msg->\t%s \n", buf.mtext);
 	}
 	
 	printOptions(1);	
@@ -51,7 +50,7 @@ int main() {
 	else {
 		for(;;) {
 			char command[MSG_SIZE], backup[MSG_SIZE];
-			gets(command);
+			scanf("%s",command);
 			strcpy(backup, command);
 			if(strlen(strtok(backup, " ")) > 1) {
 				read(p[0], &charbuf, sizeof(charbuf));
@@ -66,7 +65,7 @@ int main() {
 				printf("Enter the group number to send to (or empty for all): ");
 				fflush(stdout);
 				char groupnumber[NAME_SIZE];
-				gets(groupnumber);
+				scanf("%[^\n]s",groupnumber);
 				if(strlen(groupnumber) == 0)
 					buf.gpid = 0;
 				else
@@ -93,6 +92,7 @@ int main() {
 					buf.option = 4;
 					gid = atoi(command+2);
 					buf.gpid = gid;
+					printf("gpid:%ld\n",buf.gpid);
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
 					break;
 			}
