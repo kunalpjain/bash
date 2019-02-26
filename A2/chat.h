@@ -16,7 +16,7 @@ typedef struct my_msgbuf{
 	char mtext[MSG_SIZE];
 	char uname[20];
 	int option;
-	long gid;
+	long gpid;
 }my_msgbuf;
 
 long ntoid(char *name);
