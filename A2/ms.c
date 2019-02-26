@@ -31,7 +31,7 @@ int main(void){
 	while(1){
 
    	 msgrcv(msqid,&(buf),sizeof(buf),1,0)==-1;//get all the messages 
-		if(buf.option==1){
+		if(buf.option==1){				// 
 			 printf("%s",buf.mtext);
 		}
 		if(buf.option==2){
@@ -210,4 +210,3 @@ int checkType(char* text,int *gpid){            //returns type of message 1->cre
 	return 4;
 }
 */
-
