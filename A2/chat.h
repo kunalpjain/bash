@@ -7,6 +7,7 @@
 #include<string.h>
 #include<stdbool.h>
 #include<signal.h>
+#include<ctype.h>
 
 #define MSGQ_PATH "chat.h"
 #define MSG_SIZE 2000
@@ -18,3 +19,5 @@ typedef struct my_msgbuf{
 	int option;
 	long gpid;
 }my_msgbuf;
+
+long ntoid(char *name);

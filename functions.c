@@ -495,7 +495,7 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 void customcommands(char **argv,int nofargs) {
 	if(strcmp(argv[1],"-i")==0) {
 		int index = atoi(argv[2]);
-		replaceInFile("lookup.txt", index, subarray(argv, 3, nofargs-1), nofargs-3);
+		// replaceInFile("lookup.txt", index, subarray(argv, 3, nofargs-1), nofargs-3);
 		FILE *fp = fopen("lookup.txt","a");
 		int fd = fileno(fp);
 		char buf[strlen(argv[3])+1];
