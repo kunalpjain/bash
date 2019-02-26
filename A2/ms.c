@@ -72,12 +72,12 @@ int main(void){
 }
 	
 void createGroup(long gpid,long pid,long **groups,long **clients){	//creating a new group
-	int i=0;
-	if(getPos(gpid,groups,MAX_GROUPS)==-1){			//if group already exists,return
+	if(getPos(gpid,groups,MAX_GROUPS) == -1){			//if group already exists,return
 			printf("group already exists\n");
 			return;
 	}
-
+	int i=0;
+	while(i<MAX_GROUPS && groups[i][0]!=0) i++;			//adding gpid to clients
 	groups[i][0]=gpid;								//adding pid to groups
 	groups[i][1]=1;
 	groups[i][2]=pid;
@@ -87,10 +87,13 @@ void createGroup(long gpid,long pid,long **groups,long **clients){	//creating a 
 			clients[i][1]++;
 			int pos = clients[i][1]+1;
 			clients[i][pos] = gpid;
+			return;
 		}
 		i++;
 	}
-	
+	clients[i][0] = pid;
+	clients[i][1]=1;
+	clients[i][2]=gpid;
 }	
 		
 int getPos(long key,long **array,int max){			//returns pos of key in given array[pos][0]

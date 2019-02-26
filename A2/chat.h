@@ -11,11 +11,12 @@
 
 #define MSGQ_PATH "chat.h"
 #define MSG_SIZE 2000
+#define NAME_SIZE 20
 
 typedef struct my_msgbuf{
 	long mtype;		//1->normal msg,2->create grp,3->join group
 	char mtext[MSG_SIZE];
-	char uname[20];
+	char uname[NAME_SIZE];
 	int option;
 	long gpid;
 }my_msgbuf;
