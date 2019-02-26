@@ -1,4 +1,5 @@
 #include "chat.h"
+#include<ctype.h>
 
 long ntoid(char *name) {
 	long id = 0;
@@ -7,6 +8,7 @@ long ntoid(char *name) {
 			id += (long) (name[0] - 'A') + 26;
 		else
 			id += (long) (name[0] - 'a');
+		id*=52;
 	}
 	return id;
 }

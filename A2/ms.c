@@ -39,20 +39,20 @@ int main(void){
 		if(buf.option==1){				// user is online
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==2){				//list all groups
+		else if(buf.option==2){				//list all groups
 			printf("%s",buf.mtext);
 			listAllGroups(pid,msqid,buf,groups);
 		}
-		if(buf.option==3){				//create group
+		else if(buf.option==3){				//create group
 			pid = ntoid(buf.uname);
 			createGroup(buf.gpid,pid,groups,groups);
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==4){				//join group
+		else if(buf.option==4){				//join group
 			 joinGroup(pid,buf,groups,clients);
 			 printf("%s",buf.mtext);
 		}
-		if(buf.option==5){				//list specific groups
+		else if(buf.option==5){				//list specific groups
 			printf("%s",buf.mtext);
 			listGroup(pid,msqid,buf,groups);
 		}
@@ -154,7 +154,6 @@ void listGroup(long pid,int msqid,my_msgbuf buf,long **clients){
 }
 
 void listAllGroups(long pid,int msqid,my_msgbuf buf,long **groups){
-	int grp = getPos(buf.gpid,groups,MAX_GROUPS);
 	int i=0;
 	char *str = "";
 	char str2[200];
