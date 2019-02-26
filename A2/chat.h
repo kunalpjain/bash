@@ -14,6 +14,9 @@
 typedef struct my_msgbuf{
 	long mtype;		//1->normal msg,2->create grp,3->join group
 	char mtext[MSG_SIZE];
+	char uname[20];
 	int option;
 	long gid;
 }my_msgbuf;
+
+long ntoid(char *name);
