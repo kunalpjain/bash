@@ -1,6 +1,6 @@
 all:
-	gcc -g ms.c chat.c -o ms
-	gcc -g mc2.c chat.c -o mc
+	gcc -g msgq_server.c chat.c -o s
+	gcc -g msgq_client.c chat.c -o c
 
 clean:
-	rm *.o
+	rm s c
