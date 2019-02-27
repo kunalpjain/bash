@@ -59,10 +59,13 @@ int main() {
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
+<<<<<<< HEAD
 				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {			//queues all non 5 msgs
 					buf.mtype = my_id;
 					msgsnd(msqid, &buf, sizeof(buf), 0);
 				}
+=======
+>>>>>>> 550be853ac688158308bcdc8889c960bb5085c43
 				printf("You are in the following groups:\n%s", buf.mtext);
 				printf("Enter the group number to send to (or empty for all): ");
 				fflush(stdout);

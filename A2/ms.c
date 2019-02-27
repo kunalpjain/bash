@@ -6,6 +6,12 @@ int main(void){
 	struct my_msgbuf buf;
 	int msqid;
 	key_t key;
+<<<<<<< HEAD
+=======
+
+	//creating data structures for clients and groups
+
+>>>>>>> 550be853ac688158308bcdc8889c960bb5085c43
 	long clients[MAX_CLIENTS][MAX_CLIENTS];
 	long groups[MAX_GROUPS][MAX_GROUPS];
 
@@ -121,27 +127,15 @@ void SendMessage(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GR
 	}
 	int no_members = groups[grp][1];
 	printf("Sending msg by %s to group %ld\n",buf.uname,buf.gpid);
+	long send_to;
 	for(int i=0;i<no_members;i++){
-		pid = groups[grp][i+2];
-		buf.mtype = pid;
+		send_to = groups[grp][i+2];
+		if(send_to == pid)			//dont send message to itself
+			continue;
+		buf.mtype = send_to;
 		msgsnd(msqid,&buf,sizeof(buf),0);
 	}
 }
-/*
-int no_tokens(char *text){
-	char *str=(char*)malloc(MSG_SIZE);
-	strcpy(str,text);
-	char *delim=" ";
-	str=strtok(str,delim);
-	int count=0;
-	while(str!=NULL){
-			str=strtok(NULL,delim);
-			count++;
-	}
-	return count;
-}
-
-*/
 
 void listGroup(long pid,int msqid,my_msgbuf buf,long clients[MAX_CLIENTS][MAX_CLIENTS]){
 	int cli = getPosClient(pid,clients,MAX_CLIENTS);
@@ -177,7 +171,7 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
-bool checkMem(int pos,long array[MAX_GROUPS][MAX_GROUPS],long key){
+bool checkMem(int pos,long array[MAX_GROUPS][MAX_GROUPS],long key){//check keybelongs toarray[pos][i]
 	int nos = array[pos][1];
 	for(int i=0;i<nos;i++){
 		if(array[pos][i+2]==key){
@@ -222,30 +216,3 @@ void joinGroup(long pid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS],long c
 	printf("%s joined group %ld\n",buf.uname,buf.gpid);
 }
 
-/*
-int checkType(char* text,int *gpid){            //returns type of message 1->create,2->join etc
-	int no_token = no_tokens(text);
-	char *temp = (char*)malloc(MSG_SIZE);
-	if(text[strlen(text)-1] =='\n')
-		text[strlen(text)-1]=0;
-	strcpy(temp,text);
-	const char *delim = " ";
-	temp = strtok(temp,delim);
-	if(temp==NULL)
-		return 4;
-	if(no_token == 2 &&strcmp(temp,"create")==0){
-		temp=strtok(NULL,delim);
-		*gpid = atoi(temp);
-		return 1;
-	}
-	if(no_token==2 && strcmp(temp,"join")==0){
-		temp=strtok(NULL,delim);
-		*gpid = atoi(temp);
-		return 2;
-	}
-	if(no_token ==1  && strcmp(temp,"list")==0){
-		return 3;
-	}
-	return 4;
-}
-*/
