@@ -31,7 +31,7 @@ int main() {
 	long my_id = ntoid(uname);
 	strcpy(buf.mtext, "\0");
 	while(msgrcv(msqid, &buf, sizeof(buf), my_id, IPC_NOWAIT)!=-1) {
-		printf("Msg->\t%s\n", buf.mtext);
+		printf("\n[%ld] %s-> %s\n",buf.gpid, buf.uname, buf.mtext);
 	}
 	
 	printOptions(1);	
@@ -46,7 +46,7 @@ int main() {
 					fflush(stdout);
 					break;
 				case 6:
-					printf("\n%s-> %s\n", buf.uname, buf.mtext);
+					printf("\n[%ld] %s-> %s\n",buf.gpid, buf.uname, buf.mtext);
 					printf("-> ");
 					fflush(stdout);
 					break;
@@ -86,28 +86,27 @@ int main() {
 			switch(command[0]) {
 				case 'l':
 					buf.option = 2;									// list all groups
-					sprintf(buf.mtext, "User %s is retrieving list of all groups\n", uname);
+					sprintf(buf.mtext, "%s is retrieving list of all groups\n", uname);
 					break;
 				case 'c':
 					buf.option = 3;									// create group
 					gid = atoi(command+2);
 					buf.gpid = gid;
-					sprintf(buf.mtext, "User %s attempting to create group %ld\n", uname, gid);
-					printf("-> ");
+					sprintf(buf.mtext, "%s attempting to create group %ld\n", uname, gid);
 					break;
 				case 'j':
 					buf.option = 4;
 					gid = atoi(command+2);
 					buf.gpid = gid;
-					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
-					printf("-> ");
+					sprintf(buf.mtext, "%s attempting to join group %ld\n", uname, gid);
 					break;
 				case 'h':
 					printOptions(1);
-					break;
+					continue;
 			}
+			printf("-> ");
+			buf.mtype = 1;
 			msgsnd(msqid, &buf, sizeof(buf), 0);
-			fflush(stdout);
 		}
 	}
 	
