@@ -6,12 +6,9 @@ int main(void){
 	struct my_msgbuf buf;
 	int msqid;
 	key_t key;
-
 	//creating data structures for clients and groups
-
 	long clients[MAX_CLIENTS][MAX_CLIENTS];
 	long groups[MAX_GROUPS][MAX_GROUPS];
-
 	//initializing clients and groups to 0
 
 	memset(clients,0,sizeof(long)*MAX_CLIENTS*MAX_CLIENTS);
@@ -146,9 +143,7 @@ void listGroup(long pid,int msqid,my_msgbuf buf,long clients[MAX_CLIENTS][MAX_CL
 	}	
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
-	printf("sent\n");
 	msgsnd(msqid,&buf,sizeof(buf),0);
-	printf("sent\n");
 }
 
 void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS]){
@@ -160,8 +155,6 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_
 			strcat(str,str2);
 			i++;
 	}
-	if(i==0)		//no groups available
-		return;
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
 	msgsnd(msqid,&buf,sizeof(buf),0);

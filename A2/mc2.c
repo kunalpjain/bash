@@ -7,8 +7,6 @@ int main() {
 	key_t key;
 	int p[2], msqid;
 	char uname[20], charbuf='a';
-	pipe(p);
-	write(p[1], &charbuf, sizeof(charbuf));
 	if((key=ftok(MSGQ_PATH,'A'))==-1){
 		perror("ftok:");
 		exit(1);
@@ -40,12 +38,13 @@ int main() {
 	int ret = fork();
 	if(ret==0) {
 		for(;;) {
-			//pause();
 			msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
-			read(p[0], &charbuf, sizeof(charbuf));
-			printf("\nMsg -> %s\n", buf.mtext);
-			write(p[1], &charbuf, sizeof(charbuf));
-			//printOptions(1);
+			if(buf.option ==5){
+				printf("You are in the following groups:\n%s", buf.mtext);
+				printf("Enter the group number to send to (or empty for all): ");
+				printf("%s\n",buf.mtext);
+			}
+			printf("%s -> %s\n",buf.uname, buf.mtext);
 		}
 	}
 	else {
@@ -54,12 +53,19 @@ int main() {
 			scanf(" %[^\n]", command);
 			strcpy(backup, command);
 			if(strlen(strtok(backup, " ")) > 1) {
-				read(p[0], &charbuf, sizeof(charbuf));
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
-				printf("You are in the following groups:\n%s", buf.mtext);
-				printf("Enter the group number to send to (or empty for all): ");
+
+/*
+				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {
+					buf.mtype = my_id;
+					msgsnd(msqid, &buf, sizeof(buf), 0);
+				}
+*/
+			//	msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
+
+
 				fflush(stdout);
 				char groupnumber[NAME_SIZE];
 				scanf(" %s", groupnumber);
@@ -71,7 +77,6 @@ int main() {
 				buf.mtype =1;
 				strcpy(buf.mtext, command);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
-				write(p[1], &charbuf, sizeof(charbuf));
 				continue;
 			}
 			long gid;
