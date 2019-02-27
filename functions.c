@@ -7,11 +7,12 @@ void handler(int signo) {
 	printf("\nEnter your desired command: ");
 	fflush(stdout);
 	scanf(" %d",&index);
-	printf("You entered index %d\n", index);
-	char *command = getLineFromFile("lookup.txt",index);
-	printf("got buf=%s\n", command);
-	if(strcmp(command, "empty") == 0) {
+	char command[20];
+	strcpy(command, lookuptable[index]);
+	if(strcmp(command, "empty") == 0 || strlen(command) == 0) {
 		printf("No command found\n");
+		printf("prompt> ");
+		fflush(stdout);
 		return;
 	}
 	char *firstarg = getcommand(command,&nofargs);
@@ -22,6 +23,8 @@ void handler(int signo) {
 		parsecommand(completepath, pathofcommand, argv, nofargs);
 	else {
 		waitpid(ret, &status, 0);
+		printf("\n||PID = %d\n||Status = %d\n\n\n", ret, status);
+		printf("prompt> ");
 		fflush(stdout);
 		fflush(stdin);
 		return;
@@ -489,6 +492,10 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 
 }
 void customcommands(char **argv,int nofargs) {
+	if(nofargs<3) {
+		printf("Command %s not found\n", argv[0]);
+		return;
+	}
 	if(strcmp(argv[1],"-i")==0) {
 		int index = atoi(argv[2]);
 		char newcommand[10] = "";
@@ -496,68 +503,10 @@ void customcommands(char **argv,int nofargs) {
 			strcat(newcommand, argv[i]);
 			strcat(newcommand, " ");
 		}
-		insertLineIntoFile("lookup.txt", index, newcommand);
-		exit(0);
+		strcpy(lookuptable[index], newcommand);
 	}
 	if(strcmp(argv[1],"-d")==0){
 		int index = atoi(argv[2]);
-		deleteLineFromFile("lookup.txt", index);
-		exit(0);
+		strcpy(lookuptable[index], "empty");
 	}
-}
-
-void deleteLineFromFile(char *filename, int linenumber) {
-	FILE *fp = fopen(filename, "r");
-	FILE *fp2 = fopen("tempfile.txt", "w");
-	char line[10];
-	int i;
-	for(i=0;i<MAX_SIZE;i++) {
-		if(i==linenumber-1) {
-			fprintf(fp2, "empty\n");
-			continue;
-		}
-		fgets(line, sizeof(line), fp);
-		fprintf(fp2, "%s\n", line);
-	}
-	fflush(fp);
-	fflush(fp2);
-	//fclose(fp);
-	//fclose(fp2);
-	remove(filename);
-	rename("tempfile.txt", filename);
-}
-
-void insertLineIntoFile(char *filename, int linenumber, char *text) {
-	FILE *fp = fopen(filename, "r");
-	FILE *fp2 = fopen("tempfile.txt", "w");
-	char line[10];
-	int i;
-	for(i=0;i<MAX_SIZE;i++) {
-		if(i==linenumber-1) {
-			fprintf(fp2, "%s\n", text);
-			continue;
-		}
-		fgets(line, sizeof(line), fp);
-		fprintf(fp2, "%s\n", line);
-	}
-	fflush(fp);
-	fflush(fp2);
-	//fclose(fp);
-	//fclose(fp2);
-	remove(filename);
-	rename("tempfile.txt", filename);
-}
-
-char * getLineFromFile(char *filename, int linenumber) {
-	FILE *fp = fopen(filename, "r");
-	char *buf = (char *)malloc(sizeof(char)*10);
-	for(int i=0;i<linenumber;i++) { 
-		fscanf(fp, "%[^\n]", buf);
-		printf("line %d: %s\n", i, buf);
-	}
-	printf("command read was: %s\n", buf);
-	//fclose(fp);
-	fflush(fp);
-	printf("command read was: %s\n", buf);
-	return buf;
 }
