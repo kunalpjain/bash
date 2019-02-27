@@ -41,9 +41,10 @@ int main() {
 	if(ret==0) {
 		for(;;) {
 			//pause();
-			msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
 			read(p[0], &charbuf, sizeof(charbuf));
-			printf("\nMsg -> %s\n", buf.mtext);
+			//printf("in child\n");
+			if(msgrcv(msqid, &buf, sizeof(buf), my_id, IPC_NOWAIT) != -1)
+				printf("\nMsg -> %s\n", buf.mtext);
 			write(p[1], &charbuf, sizeof(charbuf));
 			//printOptions(1);
 		}
@@ -58,17 +59,10 @@ int main() {
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
-
-
-/*
-				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {
+				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {			//queues all non 5 msgs
 					buf.mtype = my_id;
 					msgsnd(msqid, &buf, sizeof(buf), 0);
 				}
-*/
-			//	msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
-
-
 				printf("You are in the following groups:\n%s", buf.mtext);
 				printf("Enter the group number to send to (or empty for all): ");
 				fflush(stdout);
@@ -86,11 +80,19 @@ int main() {
 				continue;
 			}
 			long gid;
-			//kill(ret,SIGUSR1);
 			switch(command[0]) {
 				case 'l':
+					read(p[0], &charbuf, sizeof(charbuf));
+					printf("in L\n");
 					buf.option = 2;									// list all groups
 					sprintf(buf.mtext, "User %s is retrieving list of all groups\n", uname);
+					buf.mtype = 1;
+					printf("msg sending...\n");
+					msgsnd(msqid, &buf, sizeof(buf), 0);
+					printf("msg sent.\n");
+					msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
+					printf("List of all groups:\n%s", buf.mtext);
+					write(p[0], &charbuf, sizeof(charbuf));
 					break;
 				case 'c':
 					buf.option = 3;									// create group
@@ -105,7 +107,6 @@ int main() {
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
 					break;
 			}
-			msgsnd(msqid, &buf, sizeof(buf), 0);
 			printf("-> ");
 			fflush(stdout);
 		}

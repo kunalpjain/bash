@@ -6,17 +6,6 @@ int main(void){
 	struct my_msgbuf buf;
 	int msqid;
 	key_t key;
-
-	//creating data structures for clients and groups
-/*
-	long **clients = (long**)malloc(sizeof(long*)*MAX_CLIENTS);
-	for(int i=0;i<MAX_CLIENTS;i++)
-		clients[i]=(long*)malloc(sizeof(long)*MAX_CLIENTS);
-
-	long **groups = (long**)malloc(sizeof(long*)*MAX_GROUPS);
-	for(int i=0;i<MAX_CLIENTS;i++)
-		groups[i]=(long*)malloc(sizeof(long)*MAX_GROUPS);
-*/
 	long clients[MAX_CLIENTS][MAX_CLIENTS];
 	long groups[MAX_GROUPS][MAX_GROUPS];
 
@@ -63,8 +52,8 @@ int main(void){
 		}
 		else{
 			if(buf.gpid==0){			//send message to all groups
-				int cli = getPosClient(pid,clients,MAX_CLIENTS);
-				int nos = clients[cli][1];
+				int cli = getPosClient(pid,clients,MAX_CLIENTS); //index of pid in clients
+				int nos = clients[cli][1];	// no of groups
 				for(int i=0;i<nos;i++){
 					buf.gpid = clients[cli][i+2];
 					SendMessage(pid,msqid,buf,groups);		//normal group message
@@ -184,6 +173,7 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_
 		return;
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
+	printf("msg %s being sent to user... \n", buf.mtext);		//todelete
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
@@ -201,7 +191,7 @@ bool checkMem(int pos,long array[MAX_GROUPS][MAX_GROUPS],long key){
 void joinGroup(long pid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
 	int grp = getPosGroup(buf.gpid,groups,MAX_GROUPS);
 	if(grp==-1){
-		printf("group %s does not exist\n",buf.gpid);
+		printf("group %ld does not exist\n",buf.gpid);
 		return;
 	}
 	if(checkMem(grp,groups,pid) == true){
