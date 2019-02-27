@@ -200,11 +200,25 @@ bool checkMem(int pos,long array[MAX_GROUPS][MAX_GROUPS],long key){
 
 void joinGroup(long pid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
 	int grp = getPosGroup(buf.gpid,groups,MAX_GROUPS);
-	int cli = getPosClient(pid,clients,MAX_CLIENTS);
+	if(grp==-1){
+		printf("group %s does not exist\n",buf.gpid);
+		return;
+	}
 	if(checkMem(grp,groups,pid) == true){
 		printf("Already a member\n");
 		return;
 	}
+	int cli = getPosClient(pid,clients,MAX_CLIENTS);
+
+	if(cli==-1){		//its a new client
+		cli=0;
+		while(cli<MAX_CLIENTS && clients[cli][0]!=0)
+			cli++;
+		clients[cli][0]=pid;
+	}
+	
+		
+		
 	//add client to group
 	groups[grp][1]++;
 	int mem = groups[grp][1]+1;
