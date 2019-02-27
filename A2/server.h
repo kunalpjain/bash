@@ -18,5 +18,5 @@ void listGroup(long pid,int msqid,my_msgbuf buf,long clients[MAX_CLIENTS][MAX_CL
 void SendMessage(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_GROUPS]);
 int getPosGroup(long key,long array[MAX_GROUPS][MAX_GROUPS],int max);
 int getPosClient(long key,long array[MAX_CLIENTS][MAX_CLIENTS],int max);
-void createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]);
+int createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]);
 

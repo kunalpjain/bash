@@ -39,12 +39,23 @@ int main() {
 	if(ret==0) {
 		for(;;) {
 			msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
-			if(buf.option ==5){
-				printf("You are in the following groups:\n%s", buf.mtext);
-				printf("Enter the group number to send to (or empty for all): ");
-				printf("%s\n",buf.mtext);
+			switch(buf.option) {
+				case 5:
+					printf("You are in the following groups:\n%s", buf.mtext);
+					printf("Enter the group number to send to (or 0 for all): ");
+					fflush(stdout);
+					break;
+				case 6:
+					printf("\n%s-> %s\n", buf.uname, buf.mtext);
+					printf("-> ");
+					fflush(stdout);
+					break;
+				default:
+					printf("%s", buf.mtext);
+					printf("-> ");
+					fflush(stdout);
+
 			}
-			printf("%s -> %s\n",buf.uname, buf.mtext);
 		}
 	}
 	else {
@@ -56,19 +67,11 @@ int main() {
 				buf.option = 5;										// list my groups
 				sprintf(buf.mtext, "User %s is retrieving list of all joined groups\n", uname);
 				msgsnd(msqid, &buf, sizeof(buf), 0);
-
-/*
-				while(msgrcv(msqid, &buf, sizeof(buf), my_id, 0), buf.option != 5) {
-					buf.mtype = my_id;
-					msgsnd(msqid, &buf, sizeof(buf), 0);
-				}
-*/
-			//	msgrcv(msqid, &buf, sizeof(buf), my_id, 0);
-
-
 				fflush(stdout);
 				char groupnumber[NAME_SIZE];
 				scanf(" %s", groupnumber);
+				printf("-> ");
+				fflush(stdout);
 				if(strlen(groupnumber) == 0)
 					buf.gpid = 0;
 				else
@@ -80,7 +83,6 @@ int main() {
 				continue;
 			}
 			long gid;
-			//kill(ret,SIGUSR1);
 			switch(command[0]) {
 				case 'l':
 					buf.option = 2;									// list all groups
@@ -91,16 +93,17 @@ int main() {
 					gid = atoi(command+2);
 					buf.gpid = gid;
 					sprintf(buf.mtext, "User %s attempting to create group %ld\n", uname, gid);
+					printf("-> ");
 					break;
 				case 'j':
 					buf.option = 4;
 					gid = atoi(command+2);
 					buf.gpid = gid;
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
+					printf("-> ");
 					break;
 			}
 			msgsnd(msqid, &buf, sizeof(buf), 0);
-			printf("-> ");
 			fflush(stdout);
 		}
 	}

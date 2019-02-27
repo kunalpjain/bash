@@ -39,7 +39,17 @@ int main(void){
 		else if(buf.option==3){				//create group
 			pid = ntoid(buf.uname);
 			printf("%s",buf.mtext);
-			createGroup(buf.gpid,pid,groups,clients);
+			if(createGroup(buf.gpid,pid,groups,clients) == -1){
+				sprintf(buf.mtext,"Group %ld already exists\n",buf.gpid);
+				buf.mtype = pid;
+				msgsnd(msqid,&buf,sizeof(buf),0);
+			}
+			else{
+				sprintf(buf.mtext,"Group %ld created\n",buf.gpid);
+				buf.mtype = pid;
+				msgsnd(msqid,&buf,sizeof(buf),0);
+			}
+		
 		}
 		else if(buf.option==4){				//join group
 			 joinGroup(pid,buf,groups,clients);
@@ -52,8 +62,8 @@ int main(void){
 		}
 		else{
 			if(buf.gpid==0){			//send message to all groups
-				int cli = getPosClient(pid,clients,MAX_CLIENTS);
-				int nos = clients[cli][1];
+				int cli = getPosClient(pid,clients,MAX_CLIENTS); //index of pid in clients
+				int nos = clients[cli][1];	// no of groups
 				for(int i=0;i<nos;i++){
 					buf.gpid = clients[cli][i+2];
 					SendMessage(pid,msqid,buf,groups);		//normal group message
@@ -65,10 +75,10 @@ int main(void){
 	}
 }
 	
-void createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
+int createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long clients[MAX_CLIENTS][MAX_CLIENTS]){
 	if(getPosGroup(gpid,groups,MAX_GROUPS) != -1){			//if group already exists,return
 			printf("group already exists\n");
-			return;
+			return -1;
 	}
 	int i=0;
 	while(i<MAX_GROUPS && groups[i][0]!=0) i++;			//adding gpid to clients
@@ -81,13 +91,14 @@ void createGroup(long gpid,long pid,long groups[MAX_GROUPS][MAX_GROUPS],long cli
 			clients[i][1]++;
 			int pos = clients[i][1]+1;
 			clients[i][pos] = gpid;
-			return;
+			return 0;
 		}
 		i++;
 	}
 	clients[i][0] = pid;
 	clients[i][1]=1;
 	clients[i][2]=gpid;
+	return 0;
 }	
 		
 int getPosClient(long key,long array[MAX_CLIENTS][MAX_CLIENTS],int max){//returns pos of key in given array[pos][0]
@@ -157,6 +168,7 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_
 	}
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
+	printf("msg %s being sent to user... \n", buf.mtext);		//todelete
 	msgsnd(msqid,&buf,sizeof(buf),0);
 }
 
