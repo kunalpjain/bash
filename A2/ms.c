@@ -6,12 +6,7 @@ int main(void){
 	struct my_msgbuf buf;
 	int msqid;
 	key_t key;
-<<<<<<< HEAD
-=======
-
 	//creating data structures for clients and groups
-
->>>>>>> 550be853ac688158308bcdc8889c960bb5085c43
 	long clients[MAX_CLIENTS][MAX_CLIENTS];
 	long groups[MAX_GROUPS][MAX_GROUPS];
 
@@ -163,8 +158,6 @@ void listAllGroups(long pid,int msqid,my_msgbuf buf,long groups[MAX_GROUPS][MAX_
 			strcat(str,str2);
 			i++;
 	}
-	if(i==0)		//no groups available
-		return;
 	buf.mtype = pid;
 	strcpy(buf.mtext,str);
 	printf("msg %s being sent to user... \n", buf.mtext);		//todelete
