@@ -30,4 +30,7 @@ void doublePipe(char *path1,char **argv,int nofargs);
 void TriplePipe(char *path1,char **argv,int nofargs);
 void parsecommand2(char *completepath,char *p,char **argv,int nofargs);
 void customcommands(char **argv,int nofargs);
+void deleteLineFromFile(char *filename, int index);
+void insertLineIntoFile(char *filename, int index, char *text);
+char *getLineFromFile(char *filename, int index);
 

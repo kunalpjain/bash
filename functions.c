@@ -1,23 +1,19 @@
 #include "functions.h"
 
 void handler(int signo) {
-	FILE *fp = fopen("lookup.txt","r");
 	char *completepath = getenv ("PATH");
 	int index,nofargs=0;
 	bool var=false;
 	printf("\nEnter your desired command: ");
 	fflush(stdout);
-	scanf("%d",&index);
-	/*char command[100];
-	int i;
-	while(fscanf(fp,"%d %s\n",&i,command)>0){
-		if(i==index)
-			break;
+	scanf(" %d",&index);
+	printf("You entered index %d\n", index);
+	char *command = getLineFromFile("lookup.txt",index);
+	printf("got buf=%s\n", command);
+	if(strcmp(command, "empty") == 0) {
+		printf("No command found\n");
+		return;
 	}
-	
-	printf("command[%d]:%s\n",index,command);
-	fclose(fp);*/
-	char *command = indexInFile(fp,index);
 	char *firstarg = getcommand(command,&nofargs);
 	char *pathofcommand = getfile(completepath,firstarg);
 	char **argv = getargv(command,&nofargs,&var);
@@ -71,7 +67,7 @@ char *getfile(char *path,char *firstarg){//returns file path of command entered 
 	char *delim=":";
 	char *savepath;
        
-	char *k = (char*)malloc (sizeof(char)*100);//final file path
+	char *k = (char*)malloc (sizeof(char)*MAX_SIZE);//final file path
 	
 	char temp[100] = "/";
 	
@@ -495,24 +491,73 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 void customcommands(char **argv,int nofargs) {
 	if(strcmp(argv[1],"-i")==0) {
 		int index = atoi(argv[2]);
-		// replaceInFile("lookup.txt", index, subarray(argv, 3, nofargs-1), nofargs-3);
-		FILE *fp = fopen("lookup.txt","a");
-		int fd = fileno(fp);
-		char buf[strlen(argv[3])+1];
-		strcpy(buf, argv[3]);
-		buf[strlen(argv[3])] = '\n';
-		write(fd, buf, sizeof(buf));
-		fclose(fp);
+		char newcommand[10] = "";
+		for(int i=3;i<nofargs;i++) {
+			strcat(newcommand, argv[i]);
+			strcat(newcommand, " ");
+		}
+		insertLineIntoFile("lookup.txt", index, newcommand);
 		exit(0);
 	}
 	if(strcmp(argv[1],"-d")==0){
-		//FILE *fp = fopen("lookup.txt","r+");
-		//fseek(fp,0,SEEK_SET);
-		//while(fscanf(fp,"%d:%s\n",&i,command)>0){
-		printf("adding\n");
-		//	if(i==index){
-		//		break;
-		}
-		//strcpy(lookuptable[(int)atoi(argv[2])],"empty");
+		int index = atoi(argv[2]);
+		deleteLineFromFile("lookup.txt", index);
+		exit(0);
+	}
 }
 
+void deleteLineFromFile(char *filename, int linenumber) {
+	FILE *fp = fopen(filename, "r");
+	FILE *fp2 = fopen("tempfile.txt", "w");
+	char line[10];
+	int i;
+	for(i=0;i<MAX_SIZE;i++) {
+		if(i==linenumber-1) {
+			fprintf(fp2, "empty\n");
+			continue;
+		}
+		fgets(line, sizeof(line), fp);
+		fprintf(fp2, "%s\n", line);
+	}
+	fflush(fp);
+	fflush(fp2);
+	//fclose(fp);
+	//fclose(fp2);
+	remove(filename);
+	rename("tempfile.txt", filename);
+}
+
+void insertLineIntoFile(char *filename, int linenumber, char *text) {
+	FILE *fp = fopen(filename, "r");
+	FILE *fp2 = fopen("tempfile.txt", "w");
+	char line[10];
+	int i;
+	for(i=0;i<MAX_SIZE;i++) {
+		if(i==linenumber-1) {
+			fprintf(fp2, "%s\n", text);
+			continue;
+		}
+		fgets(line, sizeof(line), fp);
+		fprintf(fp2, "%s\n", line);
+	}
+	fflush(fp);
+	fflush(fp2);
+	//fclose(fp);
+	//fclose(fp2);
+	remove(filename);
+	rename("tempfile.txt", filename);
+}
+
+char * getLineFromFile(char *filename, int linenumber) {
+	FILE *fp = fopen(filename, "r");
+	char *buf = (char *)malloc(sizeof(char)*10);
+	for(int i=0;i<linenumber;i++) { 
+		fscanf(fp, "%[^\n]", buf);
+		printf("line %d: %s\n", i, buf);
+	}
+	printf("command read was: %s\n", buf);
+	//fclose(fp);
+	fflush(fp);
+	printf("command read was: %s\n", buf);
+	return buf;
+}
