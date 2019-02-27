@@ -10,5 +10,5 @@ shell.o:	shell.c functions.h
 	gcc -g -c shell.c
 
 clean:
-	rm *.o
+	rm *.o a.out
 

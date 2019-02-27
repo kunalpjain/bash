@@ -21,4 +21,4 @@ typedef struct my_msgbuf{
 	long gpid;
 }my_msgbuf;
 
-long ntoid(char *name);
+

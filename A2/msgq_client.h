@@ -8,3 +8,4 @@
 #include<stdbool.h>
 
 void printOptions(int extra);
+long ntoid(char *name);

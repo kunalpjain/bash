@@ -1,6 +1,5 @@
 #include "chat.h"
-#include "server.h"
-#include "client.h"
+#include "msgq_client.h"
 
 int main() {
 	struct my_msgbuf buf;
@@ -120,4 +119,16 @@ void printOptions(int extra) {
 	if(extra)
 		printf("-> ");
 	fflush(stdout);
+}
+
+long ntoid(char *name) {
+	long id = 0;
+	for(int i=0;i<strlen(name);i++) {
+		if(isupper(name[0]) == 1)
+			id += (long) (name[0] - 'A') + 26;
+		else
+			id += (long) (name[0] - 'a');
+		id*=52;
+	}
+	return id;
 }

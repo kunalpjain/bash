@@ -4,9 +4,14 @@ void handler(int signo) {
 	char *completepath = getenv ("PATH");
 	int index,nofargs=0;
 	bool var=false;
-	printf("\nEnter your desired command: ");
-	fflush(stdout);
-	scanf(" %d",&index);
+	while(printf("\nEnter your desired command (0 to list all shortcuts): "),fflush(stdout),scanf(" %d",&index),index==0){
+		for(int i=0;i<MAX_SIZE;i++){
+			if(strcmp(lookuptable[i],"empty")==0 || strlen(lookuptable[i])==0)
+				continue;
+			printf("%d\t %s\n",i,lookuptable[i]);
+		}
+	}
+				
 	char command[20];
 	strcpy(command, lookuptable[index]);
 	if(strcmp(command, "empty") == 0 || strlen(command) == 0) {
@@ -31,35 +36,16 @@ void handler(int signo) {
 	}
 }
 
-void createEmptyFile(char *filename) {
-	FILE *fp = fopen(filename, "w");
-	for(int i=0;i<MAX_SIZE;i++) {
-		write(fileno(fp), "empty\n", 7);
-	}
-	fclose(fp);
-}
-
-char * indexInFile(FILE *fp, int index) {
-	char *buf = (char *)malloc(sizeof(char)*MAX_SIZE);
-	fseek(fp,0,SEEK_SET);
-	for(int i=0;i<index;i++) {
-		fscanf(fp,"%s",buf);
-	}
-	return buf;
-}
-
 char *getcommand(char *buf,int *noofargs){//gets the first command and updates no of args
 	char *delim = " ";
 	char *savebuf;
 	char *buf2 = (char*)malloc(MAX_SIZE);
 	strcpy(buf2,buf);
-	//char *command = strtok_r(buf2,delim,&savebuf);
 	int parser=0;
 	char *command = nextToken(buf2,&parser);
 	char *firstarg=command;
 	while (firstarg != NULL){
 		*noofargs+=1;
-		//firstarg = strtok_r (NULL,delim, &savebuf);
 		firstarg = nextToken(buf2,&parser);
 	}
 	return command;
@@ -94,9 +80,6 @@ char *getfile(char *path,char *firstarg){//returns file path of command entered 
 
 }
 
-
-
-
 char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and returns vector argv
 	char buf[MAX_SIZE];
 	strcpy(buf,buff);
@@ -124,10 +107,6 @@ char **getargv(char *buff,int *nofargs,bool *back_pr){//updates backgprocess and
 	return v;
 }		
 	
-
-
-
-
 bool check (char *filepath)
 {
 	if (access (filepath, F_OK) == 0){
@@ -139,9 +118,7 @@ bool check (char *filepath)
 
 
 void parsecommand(char *completepath,char *path,char **argv,int nofargs) { //indexes all the symbols
-	// write(fileno(stdout),"%s\n",10);
 	if(strinarr(argv, "|",nofargs,0) >= 0)
-	//	pipesign(completepath,path,argv,nofargs);
 		pipecommand(completepath,path,argv,nofargs);
 	if(strinarr(argv, "||",nofargs,0) >= 0)
 		doublePipe(path,argv,nofargs);
@@ -178,8 +155,6 @@ char **subarray(char **argv, int start, int end) {
 	newpath[end-start+1]=NULL;
 	return newpath;
 }
-
-
 
 char *nextToken(char *str,int *point){
 	int len = strlen(str);
@@ -334,54 +309,6 @@ void doublePipe(char *path1,char **argv,int nofargs){
 		}
 	}
 }
-/*
-void pipesign(char *completepath,char *path,char **argv,int nofargs) {
-
-	int countofpipe=0;
-	for(int i=0;i<nofargs;i++) {//counting number of pipes
-		if(strcmp(argv[i],"|") == 0) {
-			countofpipe++;
-		}
-	}
-
-
-	int p[countofpipe+1][2];
-	for(int i=0;i<=countofpipe;i++)
-		pipe(p[i]);
-	int index = strinarr(argv,"|",nofargs,0),prev=0;
-
-	for(int i=0;i<=countofpipe;i++) {
-
-		char **newcommand = subarray(argv,prev,index-1);
-		
-		if(fork()==0) {
-			if(i!=0) {
-				// printf("changing read pipe for %s\n", newcommand[0]);
-				dup2(p[i-1][0],0);
-				// printf("changed read\n");
-			}
-			if(i!=countofpipe) {
-				// printf("changing write pipe for %s\n", newcommand[0]);
-				dup2(p[i][1],1);
-				// printf("changed write\n");
-			}
-			parsecommand(completepath,getfile(completepath,newcommand[0]),newcommand,index-prev+1);
-		}
-		else {
-			close(p[i-1][0]);
-			close(p[i][1]);
-			wait(NULL);
-			prev = index+1;
-			if(i!=countofpipe-1)
-				index = strinarr(newcommand,"|",index-prev,0);
-			else
-				index = nofargs;
-		}
-	}
-	exit(0);
-
-}
-*/
 
 void TriplePipe(char *path1,char **argv,int nofargs){
 	extern char **environ;
@@ -444,7 +371,7 @@ void TriplePipe(char *path1,char **argv,int nofargs){
 		}
 	}
 }
-//new pipe
+
 void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 
 	int countofpipe=0;
@@ -476,7 +403,6 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 			if(i!=countofpipe) {//write to next pipe
 				dup2(p[i][1],1);
 			}
-			//execv(path1,argv1);
 			parsecommand(completepath,path1,argv1,index-prev_index-1);
 		}
 		else {
@@ -491,6 +417,7 @@ void pipecommand(char *completepath,char *path,char **argv,int nofargs) {
 	exit(0);
 
 }
+
 void customcommands(char **argv,int nofargs) {
 	if(nofargs<3) {
 		printf("Command %s not found\n", argv[0]);
