@@ -107,6 +107,9 @@ int main() {
 					sprintf(buf.mtext, "User %s attempting to join group %ld\n", uname, gid);
 					printf("-> ");
 					break;
+				case 'h':
+					printOptions(1);
+					break;
 			}
 			msgsnd(msqid, &buf, sizeof(buf), 0);
 			fflush(stdout);
